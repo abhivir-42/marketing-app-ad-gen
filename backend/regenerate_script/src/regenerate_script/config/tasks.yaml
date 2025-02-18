@@ -1,17 +1,34 @@
-research_task:
+# config/tasks.yaml
+refine_script_task:
   description: >
-    Conduct a thorough research about {topic}
-    Make sure you find any interesting and relevant information given
-    the current year is {current_year}.
+    Refine the following ad script by updating only the selected sentences.
+    Original inputs:
+      - Product Name: {product_name}
+      - Target Audience: {target_audience}
+      - Key Selling Points: {key_selling_points}
+      - Tone: {tone}
+      - Ad Length: {ad_length}
+      - Speaker Voice: {speaker_voice}
+    Current Script: {current_script}
+    Selected Sentences: {selected_sentences}
+    Improvement Instruction: {improvement_instruction}
   expected_output: >
-    A list with 10 bullet points of the most relevant information about {topic}
-  agent: researcher
-
-reporting_task:
-  description: >
-    Review the context you got and expand each topic into a full section for a report.
-    Make sure the report is detailed and contains any and all relevant information.
-  expected_output: >
-    A fully fledged report with the main topics, each with a full section of information.
-    Formatted as markdown without '```'
-  agent: reporting_analyst
+    List of tuples formatted as:
+    [
+      ("Line 1 text", "Voice direction for line 1"),
+      ("Line 2 text", "Voice direction for line 2"),
+      ...
+    ]
+  agent: refine_script_generator
+  tools: []
+  context: []
+  inputs:
+    - product_name
+    - target_audience
+    - key_selling_points
+    - tone
+    - ad_length
+    - speaker_voice
+    - current_script
+    - selected_sentences
+    - improvement_instruction
