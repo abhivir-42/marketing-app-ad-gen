@@ -15,7 +15,6 @@ class ScriptGeneration():
     - key_selling_points: Key selling points of the product.
     - tone: The desired tone of the ad (e.g., "Fun", "Professional", "Urgent").
     - ad_length: The duration of the ad (15s, 30s, 60s).
-    - speaker_voice: The voice to be used (Male, Female, or Either).
     """
 
 	# If you want to run a snippet of code before or after the crew starts, 
@@ -43,10 +42,14 @@ class ScriptGeneration():
     @task
     def ad_script_task(self) -> Task:
         output_path = Path(__file__).parent.parent.parent / 'radio_script.md'
-        return Task(
+        print(f"Expected output path: {output_path}")  # Debugging line
+        print("Starting ad script task...")  # Debugging line
+        task = Task(
             config=self.tasks_config['ad_script_task'],
             output_file=str(output_path)
         )
+        print("Task created, returning task...")  # Debugging line
+        return task
 
     @crew
     def crew(self) -> Crew:

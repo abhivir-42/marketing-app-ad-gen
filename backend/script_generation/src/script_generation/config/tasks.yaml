@@ -7,7 +7,6 @@ ad_script_task:
     Key Selling Points: {key_selling_points}
     Tone: {tone}
     Ad Length: {ad_length}
-    Speaker Voice: {speaker_voice}
   expected_output: >
     List of tuples formatted as:
     [
@@ -24,4 +23,3 @@ ad_script_task:
     - key_selling_points
     - tone
     - ad_length
-    - speaker_voice
