@@ -4,6 +4,12 @@ import warnings
 import os
 import json
 from regenerate_script.crew import ScriptRefinement
+import dotenv 
+
+# Add dotenv loading at the top of the file
+# load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
+dotenv.load_dotenv()
+openai_api_key = os.environ.get("OPENAI_API_KEY")
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
