@@ -1,58 +1,60 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Tuple
-from backend.services.script_generation import call_script_generation_crew
+import os
+import subprocess
+import json
+from pathlib import Path
 
 app = FastAPI()
 
-# Define data models
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class ScriptRequest(BaseModel):
     product_name: str
     target_audience: str
     key_selling_points: str
     tone: str
     ad_length: int
-    ad_speaker_voice: str
 
-class RefineRequest(BaseModel):
-    selected_sentences: List[int]
-    improvement_instruction: str
-    current_script: List[Tuple[str, str]]
+async def run_crewai_script(inputs: dict) -> str:
+    try:
+        script_gen_dir = Path(__file__).parent / "script_generation" / "src"
+        os.chdir(script_gen_dir)
+        output_path = Path("/Users/abhivir42/projects/marketing-app-ad-gen/backend/script_generation/src/Users/abhivir42/projects/marketing-app-ad-gen/backend/script_generation/radio_script.md")
+        if output_path.exists():
+            output_path.unlink()
+        result = subprocess.run(
+            ["python", "-m", "script_generation.main"],
+            env={
+                **os.environ,
+                "PYTHONPATH": str(script_gen_dir),
+                "CREW_INPUTS": json.dumps(inputs)
+            },
+            capture_output=True,
+            text=True
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"CrewAI Error: {result.stderr}")
+        if output_path.exists():
+            return output_path.read_text()
+        raise FileNotFoundError("Script output file not generated")
+    except Exception as e:
+        raise RuntimeError(f"Script generation failed: {str(e)}")
+    finally:
+        os.chdir(Path(__file__).parent)
 
-class AudioRequest(BaseModel):
-    script: List[Tuple[str, str]]
-    speed: float
-    pitch: float
-
-# Placeholder for crew integration
-async def call_script_generation_crew(data: ScriptRequest):
-    # TODO: Implement crew call
-    return [("Sample script line", "Sample art direction")]
-
-async def call_regenerate_script_crew(data: RefineRequest):
-    # TODO: Implement crew call
-    return [("Refined script line", "Refined art direction")]
-
-# Define endpoints
 @app.post("/generate_script")
 async def generate_script(request: ScriptRequest):
     try:
-        result = await call_script_generation_crew(request)
-        return {"script": result}
+        inputs = request.dict()
+        script_output = await run_crewai_script(inputs)
+        return {"success": True, "script": script_output}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/refine_script")
-async def refine_script(request: RefineRequest):
-    if not request.selected_sentences or not request.improvement_instruction:
-        raise HTTPException(status_code=400, detail="Please select sentences and provide an improvement instruction.")
-    try:
-        result = await call_regenerate_script_crew(request)
-        return {"script": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/generate_audio")
-async def generate_audio(request: AudioRequest):
-    # TODO: Implement Parler TTS API call
-    return {"audio_url": "http://example.com/audio.mp3"} 
+        raise HTTPException(status_code=500, detail=str(e)) 
