@@ -1,7 +1,7 @@
 [project]
-name = "script_generation"
+name = "regenerate_script"
 version = "0.1.0"
-description = "script_generation using crewAI"
+description = "regenerate_script using crewAI"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 requires-python = ">=3.10,<3.13"
 dependencies = [
@@ -9,11 +9,11 @@ dependencies = [
 ]
 
 [project.scripts]
-script_generation = "script_generation.main:run"
-run_crew = "script_generation.main:run"
-train = "script_generation.main:train"
-replay = "script_generation.main:replay"
-test = "script_generation.main:test"
+regenerate_script = "regenerate_script.main:run"
+run_crew = "regenerate_script.main:run"
+train = "regenerate_script.main:train"
+replay = "regenerate_script.main:replay"
+test = "regenerate_script.main:test"
 
 [build-system]
 requires = ["hatchling"]

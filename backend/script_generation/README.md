@@ -1,6 +1,6 @@
-# {{crew_name}} Crew
+# ScriptGeneration Crew
 
-Welcome to the {{crew_name}} Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
+Welcome to the ScriptGeneration Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
 
 ## Installation
 
@@ -18,7 +18,6 @@ Next, navigate to your project directory and install the dependencies:
 ```bash
 crewai install
 ```
-
 ### Customizing
 
 **Add your `OPENAI_API_KEY` into the `.env` file**
@@ -33,7 +32,7 @@ crewai install
 To kickstart your crew of AI agents and begin task execution, run this from the root folder of your project:
 
 ```bash
-crewai run
+$ crewai run
 ```
 
 This command initializes the script_generation Crew, assembling the agents and assigning them tasks as defined in your configuration.
@@ -46,8 +45,7 @@ The script_generation Crew is composed of multiple AI agents, each with unique r
 
 ## Support
 
-For support, questions, or feedback regarding the {{crew_name}} Crew or crewAI.
-
+For support, questions, or feedback regarding the ScriptGeneration Crew or crewAI.
 - Visit our [documentation](https://docs.crewai.com)
 - Reach out to us through our [GitHub repository](https://github.com/joaomdmoura/crewai)
 - [Join our Discord](https://discord.com/invite/X4JWnZnxPb)
