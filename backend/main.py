@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Tuple
+from backend.services.script_generation import call_script_generation_crew
 
 app = FastAPI()
 
