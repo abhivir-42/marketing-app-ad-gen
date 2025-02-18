@@ -1,58 +1,34 @@
 # regenerate_script/crew.py
-
-"""
-RegenerateScript Crew for Refining Selected Ad Script Lines
-
-This module implements the RegenerateScript crew which refines specific lines of a previously 
-generated ad script based on user feedback. It uses the crew AI system to process the following inputs:
-
-New Inputs:
-- product_name: The name of the product.
-- target_audience: The target audience (e.g., "Teens", "Small Business Owners").
-- key_selling_points: Key selling points of the product.
-- tone: The desired tone of the ad (e.g., "Fun", "Professional", "Urgent").
-- ad_length: The duration of the ad (15s, 30s, 60s).
-- speaker_voice: The voice to be used (Male, Female, or Either).
-- current_script: The previously generated ad script, as a list of tuples (script_line, art_direction).
-- selected_sentences: A list of indices indicating which lines in the script should be refined.
-- improvement_instruction: A description of how the selected lines should be modified 
-  (e.g., "Add a pun about coffee").
-
-How It Works:
-1. The crew receives the original ad details along with the current script and refinement inputs.
-2. The agent (ad_script_refinement) uses these inputs to generate a new ad script where only the selected
-   lines are refined according to the improvement instruction, while the rest of the script remains mostly unchanged.
-3. The output is a list of tuples (script_line, art_direction) which will be returned to the backend and 
-   displayed on the Script & Art Direction Results Page.
-
-Usage:
-- To run this crew, call the kickoff() method with a JSON containing all required inputs.
-- Ensure the configuration files (config/agents.yaml and config/tasks.yaml) contain the corresponding 
-  entries for 'ad_script_refinement' and 'ad_script_refinement_task'.
-
-Note: This module is part of the backend integration and is invoked via a POST request from the 
-"Refine with AI" button on the Script & Art Direction Results Page.
-"""
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from pathlib import Path
 
 @CrewBase
-class RegenerateScript():
+class ScriptRefinement():
     """
-    RegenerateScript crew for refining selected lines of ad script and art direction.
+    RegenerateScript (ScriptRefinement) crew for refining selected lines in an existing ad script 
+    and art direction based on user instructions.
 
-    Expected Inputs:
-    - product_name: str
-    - target_audience: str
-    - key_selling_points: str
-    - tone: str
-    - ad_length: str
-    - speaker_voice: str
-    - current_script: List[Tuple[str, str]]
-    - selected_sentences: List[int]
-    - improvement_instruction: str
+    New Inputs:
+      - product_name: The name of the product.
+      - target_audience: The target audience (e.g., "Teens", "Small Business Owners").
+      - key_selling_points: Key selling points of the product.
+      - tone: The desired tone of the ad (e.g., "Fun", "Professional", "Urgent").
+      - ad_length: The duration of the ad (15s, 30s, 60s).
+      - speaker_voice: The voice to be used (Male, Female, or Either).
+      - current_script: The previously generated script as a list of tuples (script line, art direction).
+      - selected_sentences: A list of indices indicating which sentences should be refined.
+      - improvement_instruction: A description of the change to be applied to the selected sentences
+        (e.g., "Add a pun about coffee").
+    
+    Output:
+      - A list of tuples formatted as:
+          [
+            ("Line 1 text", "Voice direction for line 1"),
+            ("Line 2 text", "Voice direction for line 2"),
+            ...
+          ]
+      Only the selected sentences are refined based on the improvement_instruction, while the rest remain mostly unchanged.
     """
 
     # Load the YAML configuration files for agents and tasks.
@@ -60,34 +36,34 @@ class RegenerateScript():
     tasks_config = 'config/tasks.yaml'
 
     @agent
-    def ad_script_refinement(self) -> Agent:
+    def refine_script_generator(self) -> Agent:
         """
-        Agent responsible for refining selected ad script lines based on user input.
-        Uses the 'ad_script_refinement' configuration from config/agents.yaml.
+        Define the script refinement agent.
+        This agent is responsible for taking the original ad script and applying selective refinements
+        according to the improvement_instruction, while keeping the overall script intact.
         """
         return Agent(
-            config=self.agents_config['ad_script_refinement'],
+            config=self.agents_config['refine_script_generator'],
             verbose=True
         )
 
     @task
-    def ad_script_refinement_task(self) -> Task:
+    def refine_script_task(self) -> Task:
         """
-        Task to refine the ad script.
-        Generates an updated ad script (list of tuples) where only the selected lines are modified
-        according to the improvement_instruction while preserving the other lines.
-        The result is saved to a file (refined_radio_script.md) for reference.
+        Define the task to refine the ad script.
+        The task uses the provided inputs to update only the selected sentences in the ad script.
         """
-        output_path = Path(__file__).parent.parent.parent / 'refined_radio_script.md'
+        output_path = Path(__file__).parent.parent.parent / 'refined_script.md'
         return Task(
-            config=self.tasks_config['ad_script_refinement_task'],
+            config=self.tasks_config['refine_script_task'],
             output_file=str(output_path)
         )
 
     @crew
     def crew(self) -> Crew:
         """
-        Creates the RegenerateScript crew that sequentially executes the defined task(s).
+        Creates the RegenerateScript (ScriptRefinement) crew that sequentially executes the defined task(s).
+        The crew leverages the agent and task to produce a refined ad script as a list of tuples.
         """
         return Crew(
             agents=self.agents,  # Automatically created by the @agent decorator.
