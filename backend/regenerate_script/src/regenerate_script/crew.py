@@ -10,8 +10,6 @@ class ScriptRefinement():
     and art direction based on user instructions.
 
     New Inputs:
-      - product_name: The name of the product.
-      - target_audience: The target audience (e.g., "Teens", "Small Business Owners").
       - key_selling_points: Key selling points of the product.
       - tone: The desired tone of the ad (e.g., "Fun", "Professional", "Urgent").
       - ad_length: The duration of the ad (15s, 30s, 60s).
@@ -53,9 +51,6 @@ class ScriptRefinement():
         The task uses the provided inputs to update only the selected sentences in the ad script.
         """
         output_path = Path(__file__).parent.parent.parent / 'refined_script.md'
-        
-        # Here, you can modify the task configuration to not require product_name
-        # if it's not being used in the task logic.
         
         return Task(
             config=self.tasks_config['refine_script_task'],
