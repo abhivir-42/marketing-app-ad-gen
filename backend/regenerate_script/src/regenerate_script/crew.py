@@ -15,7 +15,6 @@ class ScriptRefinement():
       - key_selling_points: Key selling points of the product.
       - tone: The desired tone of the ad (e.g., "Fun", "Professional", "Urgent").
       - ad_length: The duration of the ad (15s, 30s, 60s).
-      - speaker_voice: The voice to be used (Male, Female, or Either).
       - current_script: The previously generated script as a list of tuples (script line, art direction).
       - selected_sentences: A list of indices indicating which sentences should be refined.
       - improvement_instruction: A description of the change to be applied to the selected sentences
@@ -54,6 +53,10 @@ class ScriptRefinement():
         The task uses the provided inputs to update only the selected sentences in the ad script.
         """
         output_path = Path(__file__).parent.parent.parent / 'refined_script.md'
+        
+        # Here, you can modify the task configuration to not require product_name
+        # if it's not being used in the task logic.
+        
         return Task(
             config=self.tasks_config['refine_script_task'],
             output_file=str(output_path)

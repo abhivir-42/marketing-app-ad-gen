@@ -3,12 +3,10 @@ refine_script_task:
   description: >
     Refine the following ad script by updating only the selected sentences.
     Original inputs:
-      - Product Name: {product_name}
       - Target Audience: {target_audience}
       - Key Selling Points: {key_selling_points}
       - Tone: {tone}
       - Ad Length: {ad_length}
-      - Speaker Voice: {speaker_voice}
     Current Script: {current_script}
     Selected Sentences: {selected_sentences}
     Improvement Instruction: {improvement_instruction}
@@ -23,12 +21,10 @@ refine_script_task:
   tools: []
   context: []
   inputs:
-    - product_name
     - target_audience
     - key_selling_points
     - tone
     - ad_length
-    - speaker_voice
     - current_script
     - selected_sentences
     - improvement_instruction
