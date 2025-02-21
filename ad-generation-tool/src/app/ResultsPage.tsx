@@ -108,6 +108,7 @@ const ResultsPage: React.FC = () => {
       // Save changes to localStorage when exiting edit mode
       localStorage.setItem('generatedScript', JSON.stringify(script));
       setEditingLine(null);
+      setHasUnsavedChanges(false);
     } else {
       setEditingLine({ index, isEditing: true });
     }
