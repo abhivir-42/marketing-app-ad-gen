@@ -3,7 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import AudioPlayer from '@/components/AudioPlayer';
+// import AudioPlayer from '@/components/AudioPlayer';
+
+// const SAMPLE_AUDIO_FORMATS = {
+//   wav: '/audio/sample-coffee-ad.wav',
+//   mp3: '/audio/sample-coffee-ad.mp3',
+//   ogg: '/audio/sample-coffee-ad.ogg'
+// };
 
 const LandingPage: React.FC = () => {
   return (
@@ -23,14 +29,6 @@ const LandingPage: React.FC = () => {
           >
             Create Your Customised Ad →
           </Link>
-          
-          {/* Sample Audio Player */}
-          <div className="mt-12">
-            <AudioPlayer
-              title="Sample Ad for 'Morning Brew Coffee'"
-              audioUrl="/sample-ad.mp3"  // This will be replaced with an actual sample
-            />
-          </div>
         </section>
 
         {/* How It Works Section */}
