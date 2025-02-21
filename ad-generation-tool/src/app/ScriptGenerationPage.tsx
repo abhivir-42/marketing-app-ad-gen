@@ -30,15 +30,15 @@ const ScriptGenerationPage: React.FC = () => {
     if (!formData.productName.trim()) {
       errors.productName = 'Product name is required';
     }
-    if (!formData.targetAudience) {
+    if (!formData.targetAudience.trim()) {
       errors.targetAudience = 'Target audience is required';
     }
     if (!formData.keySellingPoints.trim()) {
       errors.keySellingPoints = 'Key selling points are required';
-    } else if (formData.keySellingPoints.split(' ').length < 10) {
-      errors.keySellingPoints = 'Please provide at least 10 words for key selling points';
+    } else if (formData.keySellingPoints.split(' ').length < 3) {
+      errors.keySellingPoints = 'Please provide at least 3 words for key selling points';
     }
-    if (!formData.tone) {
+    if (!formData.tone.trim()) {
       errors.tone = 'Tone is required';
     }
     if (!formData.adLength) {
@@ -134,27 +134,22 @@ const ScriptGenerationPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-300">
                   Target Audience
                 </label>
-                <Tooltip text="Select the primary audience for your advertisement">
+                <Tooltip text="Describe your target audience (e.g., Teens, Young Adults, Parents, Small Business Owners, Professionals)">
                   <svg className="w-4 h-4 ml-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
                 </Tooltip>
               </div>
-              <select
+              <input
+                type="text"
                 name="targetAudience"
                 value={formData.targetAudience}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 rounded-lg bg-gray-700 border text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                   formErrors.targetAudience ? 'border-red-500' : 'border-gray-600'
                 }`}
-              >
-                <option value="">Select Audience</option>
-                <option value="Teens">Teens</option>
-                <option value="Young Adults">Young Adults</option>
-                <option value="Parents">Parents</option>
-                <option value="Small Business Owners">Small Business Owners</option>
-                <option value="Professionals">Professionals</option>
-              </select>
+                placeholder="e.g., Young Adults, Parents, Small Business Owners"
+              />
               {formErrors.targetAudience && (
                 <p className="mt-1 text-sm text-red-400">{formErrors.targetAudience}</p>
               )}
@@ -190,27 +185,22 @@ const ScriptGenerationPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-300">
                   Tone
                 </label>
-                <Tooltip text="Select the overall tone of your advertisement">
+                <Tooltip text="Describe the tone of your ad (e.g., Fun, Professional, Urgent, Casual, Luxury)">
                   <svg className="w-4 h-4 ml-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
                 </Tooltip>
               </div>
-              <select
+              <input
+                type="text"
                 name="tone"
                 value={formData.tone}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 rounded-lg bg-gray-700 border text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                   formErrors.tone ? 'border-red-500' : 'border-gray-600'
                 }`}
-              >
-                <option value="">Select Tone</option>
-                <option value="Fun">Fun</option>
-                <option value="Professional">Professional</option>
-                <option value="Urgent">Urgent</option>
-                <option value="Casual">Casual</option>
-                <option value="Luxury">Luxury</option>
-              </select>
+                placeholder="e.g., Professional, Fun, Urgent, Casual, Luxury"
+              />
               {formErrors.tone && (
                 <p className="mt-1 text-sm text-red-400">{formErrors.tone}</p>
               )}
