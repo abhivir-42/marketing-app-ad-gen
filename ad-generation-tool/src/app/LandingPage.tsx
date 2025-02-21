@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import AudioPlayer from '@/components/AudioPlayer';
 
 const LandingPage: React.FC = () => {
   return (
@@ -24,16 +25,11 @@ const LandingPage: React.FC = () => {
           </Link>
           
           {/* Sample Audio Player */}
-          <div className="mt-12 p-6 bg-gray-800 rounded-lg max-w-md mx-auto">
-            <h3 className="text-lg font-semibold mb-4">Sample Ad Preview</h3>
-            <div className="flex items-center justify-center space-x-4">
-              <button className="p-3 rounded-full bg-purple-600 hover:bg-purple-700 transition-colors">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                </svg>
-              </button>
-              <div className="text-sm text-gray-300">Sample Ad for "Morning Brew Coffee"</div>
-            </div>
+          <div className="mt-12">
+            <AudioPlayer
+              title="Sample Ad for 'Morning Brew Coffee'"
+              audioUrl="/sample-ad.mp3"  // This will be replaced with an actual sample
+            />
           </div>
         </section>
 
