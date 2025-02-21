@@ -50,21 +50,28 @@ const ResultsPage: React.FC = () => {
       // Get the original form data from localStorage
       const formData = JSON.parse(localStorage.getItem('scriptGenerationFormData') || '{}');
       
+      // Convert script to the format expected by the backend
+      const currentScript: [string, string][] = script.map(item => [item.line, item.artDirection]);
+      
       const refinedScript = await api.refineScript({
         selected_sentences: selectedLines,
         improvement_instruction: improvementInstruction,
-        current_script: script.map(item => [item.line, item.artDirection]),
+        current_script: currentScript,
         key_selling_points: formData.keySellingPoints || '',
         tone: formData.tone || '',
         ad_length: formData.adLength || ''
       });
 
-      setScript(refinedScript);
-      // Update localStorage with the refined script
-      localStorage.setItem('generatedScript', JSON.stringify(refinedScript));
-      setSelectedLines([]);
-      setImprovementInstruction('');
-      setHasUnsavedChanges(false);
+      if (refinedScript && refinedScript.length > 0) {
+        setScript(refinedScript);
+        // Update localStorage with the refined script
+        localStorage.setItem('generatedScript', JSON.stringify(refinedScript));
+        setSelectedLines([]);
+        setImprovementInstruction('');
+        setHasUnsavedChanges(false);
+      } else {
+        throw new Error('Received empty or invalid script from refinement');
+      }
     } catch (error) {
       console.error('Error refining script:', error);
       setError('Failed to refine script. Please try again.');

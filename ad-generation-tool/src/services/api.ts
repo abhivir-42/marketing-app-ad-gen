@@ -54,21 +54,28 @@ const api = {
 
   refineScript: async (data: Omit<RefineScriptRequest, 'ad_length'> & { ad_length: string }): Promise<Script[]> => {
     try {
+      // Transform the data to match backend expectations
       const transformedData: RefineScriptRequest = {
         ...data,
-        ad_length: convertAdLengthToSeconds(data.ad_length)
+        ad_length: convertAdLengthToSeconds(data.ad_length),
+        // Ensure current_script is in the correct tuple format
+        current_script: data.current_script.map(([line, artDirection]) => [
+          line.toString(),
+          artDirection.toString()
+        ])
       };
+      
       console.log('Sending to backend for refinement:', transformedData);
       const response = await axios.post(`${API_BASE_URL}/regenerate_script`, transformedData);
       console.log('Received from backend after refinement:', response.data);
       
-      // Transform the response data into the expected format if necessary
+      // Transform the response data into the expected format
       const scripts: Script[] = Array.isArray(response.data.data) 
-        ? response.data.data 
-        : response.data.data.split('\n').map((line: string) => {
-            const [scriptLine, artDirection] = line.split('|').map(s => s.trim());
-            return { line: scriptLine, artDirection: artDirection || '' };
-          });
+        ? response.data.data.map((item: any) => ({
+            line: item.line || item[0],
+            artDirection: item.artDirection || item[1]
+          }))
+        : [];
       
       return scripts;
     } catch (error) {
