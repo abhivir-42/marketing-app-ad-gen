@@ -3,11 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-
-interface Script {
-  line: string;
-  artDirection: string;
-}
+import ErrorMessage from '@/components/ErrorMessage';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { Script, GenerateAudioResponse } from '@/types';
 
 const TTSPage: React.FC = () => {
   const router = useRouter();
@@ -17,6 +15,7 @@ const TTSPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [script, setScript] = useState<Script[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Load the final script from localStorage
@@ -26,6 +25,7 @@ const TTSPage: React.FC = () => {
       return;
     }
     setScript(JSON.parse(savedScript));
+    setIsLoading(false);
   }, [router]);
 
   const handleGenerateAudio = async () => {
@@ -33,10 +33,10 @@ const TTSPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await axios.post('/api/generate_audio', {
+      const response = await axios.post<GenerateAudioResponse>('/api/generate_audio', {
         speed,
         pitch,
-        script, // Send the complete script for TTS generation
+        script,
       });
       setAudioUrl(response.data.audioUrl);
     } catch (error) {
@@ -47,8 +47,12 @@ const TTSPage: React.FC = () => {
     }
   };
 
-  if (!script.length) {
-    return null; // or a loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center">
+        <LoadingSpinner text="Loading Script..." />
+      </div>
+    );
   }
 
   return (
@@ -113,11 +117,7 @@ const TTSPage: React.FC = () => {
             </div>
           </div>
 
-          {error && (
-            <div className="mt-4 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200">
-              {error}
-            </div>
-          )}
+          {error && <ErrorMessage message={error} />}
 
           <button
             onClick={handleGenerateAudio}
@@ -127,13 +127,7 @@ const TTSPage: React.FC = () => {
             }`}
           >
             {isGenerating ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Generating Audio...
-              </span>
+              <LoadingSpinner text="Generating Audio..." />
             ) : (
               'Generate Audio'
             )}
