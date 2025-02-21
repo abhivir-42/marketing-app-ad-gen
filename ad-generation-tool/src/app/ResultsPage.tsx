@@ -105,6 +105,19 @@ const ResultsPage: React.FC = () => {
     }
   };
 
+  const handleBoxClick = (index: number, event: React.MouseEvent) => {
+    // Don't trigger selection if clicking the edit button or if we're in edit mode
+    const target = event.target as HTMLElement;
+    if (
+      target.closest('button') || // Ignore clicks on or within the edit button
+      editingLine?.index === index || // Ignore clicks when in edit mode
+      target.tagName === 'TEXTAREA' // Ignore clicks on textareas
+    ) {
+      return;
+    }
+    toggleLineSelection(index);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center">
@@ -130,24 +143,37 @@ const ResultsPage: React.FC = () => {
         <ProgressSteps currentStep={2} />
 
         <div className="bg-gray-800 rounded-xl p-8 shadow-xl mb-8 mt-12">
-          <h2 className="text-2xl font-semibold mb-6">Generated Script</h2>
+          <div className="mb-8 border-b border-gray-700 pb-6">
+            <h2 className="text-2xl font-semibold mb-3">Generated Script</h2>
+            <p className="text-gray-400">
+              Click on any script section to select it for AI refinement. You can select multiple sections to refine them together, 
+              or use the edit button <span className="inline-block align-middle mx-1"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></span> 
+              to make manual edits.
+            </p>
+          </div>
           <div className="space-y-6">
             {script.map((item, index) => (
               <div
                 key={index}
+                onClick={(e) => handleBoxClick(index, e)}
                 className={`p-4 rounded-lg transition-all duration-200 ${
                   selectedLines.includes(index)
-                    ? 'bg-purple-900/50 border border-purple-500'
-                    : 'bg-gray-700/50 hover:bg-gray-700'
-                }`}
+                    ? 'bg-purple-900/50 border border-purple-500 shadow-lg'
+                    : 'bg-gray-700/50 hover:bg-gray-700/80 cursor-pointer'
+                } ${editingLine?.index === index ? 'cursor-text' : ''}`}
               >
                 <div className="flex items-start space-x-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedLines.includes(index)}
-                    onChange={() => toggleLineSelection(index)}
-                    className="mt-1.5 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                  />
+                  <div className={`flex items-center mt-1.5 transition-colors duration-200 ${
+                    selectedLines.includes(index) ? 'text-purple-400' : 'text-gray-500'
+                  }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d={selectedLines.includes(index) 
+                          ? "M9 12l2 2 4-4" 
+                          : "M15 15l-2 2-2-2"} 
+                      />
+                    </svg>
+                  </div>
                   <div className="flex-1 space-y-3">
                     {editingLine?.index === index ? (
                       <>
@@ -172,8 +198,11 @@ const ResultsPage: React.FC = () => {
                     )}
                   </div>
                   <button
-                    onClick={() => toggleEditMode(index)}
-                    className="p-1 text-gray-400 hover:text-white transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering box click
+                      toggleEditMode(index);
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-600"
                     title={editingLine?.index === index ? "Save changes" : "Edit manually"}
                   >
                     {editingLine?.index === index ? (
@@ -193,7 +222,14 @@ const ResultsPage: React.FC = () => {
         </div>
 
         <div className="bg-gray-800 rounded-xl p-8 shadow-xl mb-8">
-          <h2 className="text-2xl font-semibold mb-6">Refine Script</h2>
+          <div className="mb-6 space-y-2">
+            <h2 className="text-2xl font-semibold">Refine with AI</h2>
+            <p className="text-gray-400">
+              {selectedLines.length === 0 
+                ? "Select script sections above that you'd like to improve"
+                : `${selectedLines.length} section${selectedLines.length > 1 ? 's' : ''} selected for refinement`}
+            </p>
+          </div>
           <textarea
             placeholder="How should we improve the selected lines? (e.g., 'Make it more energetic' or 'Add a pun about coffee')"
             value={improvementInstruction}
@@ -201,7 +237,10 @@ const ResultsPage: React.FC = () => {
               setImprovementInstruction(e.target.value);
               setHasUnsavedChanges(true);
             }}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 min-h-[100px] mb-4"
+            className={`w-full px-4 py-3 rounded-lg bg-gray-700 border text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 min-h-[100px] mb-4 ${
+              selectedLines.length === 0 ? 'border-gray-600 opacity-50' : 'border-purple-500'
+            }`}
+            disabled={selectedLines.length === 0}
           />
 
           {error && (
