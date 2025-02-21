@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 
 interface TooltipProps {
   text: string;
@@ -7,39 +7,84 @@ interface TooltipProps {
 
 const Tooltip: React.FC<TooltipProps> = ({ text, children }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  const clearTimeoutRef = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
 
   const handleMouseEnter = useCallback(() => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
+    clearTimeoutRef();
     setIsVisible(true);
-  }, [timeoutId]);
+  }, []);
 
-  const handleMouseLeave = useCallback(() => {
-    const id = setTimeout(() => {
+  const handleMouseLeave = useCallback((e: MouseEvent) => {
+    // Check if we're moving between the trigger and tooltip
+    if (tooltipRef.current && triggerRef.current) {
+      const tooltipElement = tooltipRef.current;
+      const triggerElement = triggerRef.current;
+      const relatedTarget = e.relatedTarget as Node;
+
+      if (
+        tooltipElement.contains(relatedTarget) ||
+        triggerElement.contains(relatedTarget)
+      ) {
+        return;
+      }
+    }
+
+    clearTimeoutRef();
+    timeoutRef.current = setTimeout(() => {
       setIsVisible(false);
-    }, 100); // Small delay before hiding
-    setTimeoutId(id);
+    }, 150); // Slightly longer delay
+  }, []);
+
+  useEffect(() => {
+    return () => clearTimeoutRef();
   }, []);
 
   return (
     <div className="relative inline-block">
       <div
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        className="p-1 -m-1" // Add padding but offset it with negative margin
+        ref={triggerRef}
+        onMouseEnter={handleMouseEnter as any}
+        onMouseLeave={handleMouseLeave as any}
+        className="p-2 -m-2" // Larger padding area
       >
         {children}
       </div>
       {isVisible && (
         <div
-          className="absolute z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm tooltip dark:bg-gray-700 -top-10 left-1/2 transform -translate-x-1/2"
+          ref={tooltipRef}
           onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          onMouseLeave={handleMouseLeave as any}
+          className="absolute z-10 px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-lg tooltip dark:bg-gray-700"
+          style={{
+            top: '-3rem', // More space between tooltip and trigger
+            left: '50%',
+            transform: 'translateX(-50%)',
+            minWidth: 'max-content',
+            maxWidth: '300px'
+          }}
         >
-          {text}
-          <div className="tooltip-arrow absolute w-2 h-2 bg-gray-900 dark:bg-gray-700 transform rotate-45 left-1/2 -translate-x-1/2 -bottom-1" />
+          <div className="relative">
+            {text}
+            {/* Invisible extended area to help with mouse movement */}
+            <div className="absolute inset-x-0 -bottom-4 h-4" />
+          </div>
+          <div 
+            className="absolute w-3 h-3 bg-gray-900 dark:bg-gray-700 transform rotate-45"
+            style={{
+              bottom: '-6px',
+              left: '50%',
+              transform: 'translateX(-50%) rotate(45deg)',
+            }}
+          />
         </div>
       )}
     </div>
