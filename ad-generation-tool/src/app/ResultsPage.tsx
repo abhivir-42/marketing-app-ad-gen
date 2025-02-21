@@ -9,6 +9,11 @@ import ProgressSteps from '@/components/ProgressSteps';
 import BackButton from '@/components/BackButton';
 import { Script, RefineScriptResponse } from '@/types';
 
+interface EditableScriptLine {
+  index: number;
+  isEditing: boolean;
+}
+
 const ResultsPage: React.FC = () => {
   const router = useRouter();
   const [script, setScript] = useState<Script[]>([]);
@@ -19,6 +24,7 @@ const ResultsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [editingLine, setEditingLine] = useState<EditableScriptLine | null>(null);
 
   useEffect(() => {
     // Load the script from localStorage
@@ -79,6 +85,26 @@ const ResultsPage: React.FC = () => {
     setHasUnsavedChanges(true);
   };
 
+  const handleManualEdit = (index: number, field: 'line' | 'artDirection', value: string) => {
+    const updatedScript = [...script];
+    updatedScript[index] = {
+      ...updatedScript[index],
+      [field]: value
+    };
+    setScript(updatedScript);
+    setHasUnsavedChanges(true);
+  };
+
+  const toggleEditMode = (index: number) => {
+    if (editingLine?.index === index) {
+      // Save changes to localStorage when exiting edit mode
+      localStorage.setItem('generatedScript', JSON.stringify(script));
+      setEditingLine(null);
+    } else {
+      setEditingLine({ index, isEditing: true });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center">
@@ -122,10 +148,44 @@ const ResultsPage: React.FC = () => {
                     onChange={() => toggleLineSelection(index)}
                     className="mt-1.5 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                   />
-                  <div className="flex-1">
-                    <p className="text-white mb-2">{item.line}</p>
-                    <p className="text-gray-400 text-sm italic">{item.artDirection}</p>
+                  <div className="flex-1 space-y-3">
+                    {editingLine?.index === index ? (
+                      <>
+                        <textarea
+                          value={item.line}
+                          onChange={(e) => handleManualEdit(index, 'line', e.target.value)}
+                          className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          rows={2}
+                        />
+                        <textarea
+                          value={item.artDirection}
+                          onChange={(e) => handleManualEdit(index, 'artDirection', e.target.value)}
+                          className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-gray-300 italic text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          rows={2}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-white">{item.line}</p>
+                        <p className="text-gray-400 text-sm italic">{item.artDirection}</p>
+                      </>
+                    )}
                   </div>
+                  <button
+                    onClick={() => toggleEditMode(index)}
+                    className="p-1 text-gray-400 hover:text-white transition-colors"
+                    title={editingLine?.index === index ? "Save changes" : "Edit manually"}
+                  >
+                    {editingLine?.index === index ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
               </div>
             ))}
