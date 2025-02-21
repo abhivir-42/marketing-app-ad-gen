@@ -8,6 +8,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import ProgressSteps from '@/components/ProgressSteps';
 import BackButton from '@/components/BackButton';
 import { Script, RefineScriptResponse } from '@/types';
+import api from '@/services/api';
 
 interface EditableScriptLine {
   index: number;
@@ -46,14 +47,21 @@ const ResultsPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await axios.post<RefineScriptResponse>('/api/refine_script', {
-        selectedLines,
-        improvementInstruction,
-        script,
+      // Get the original form data from localStorage
+      const formData = JSON.parse(localStorage.getItem('scriptGenerationFormData') || '{}');
+      
+      const refinedScript = await api.refineScript({
+        selected_sentences: selectedLines,
+        improvement_instruction: improvementInstruction,
+        current_script: script.map(item => [item.line, item.artDirection]),
+        key_selling_points: formData.keySellingPoints || '',
+        tone: formData.tone || '',
+        ad_length: formData.adLength || ''
       });
-      setScript(response.data.script);
+
+      setScript(refinedScript);
       // Update localStorage with the refined script
-      localStorage.setItem('generatedScript', JSON.stringify(response.data.script));
+      localStorage.setItem('generatedScript', JSON.stringify(refinedScript));
       setSelectedLines([]);
       setImprovementInstruction('');
       setHasUnsavedChanges(false);

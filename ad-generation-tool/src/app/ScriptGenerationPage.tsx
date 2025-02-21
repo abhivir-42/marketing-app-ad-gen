@@ -7,7 +7,8 @@ import ErrorMessage from '@/components/ErrorMessage';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ProgressSteps from '@/components/ProgressSteps';
 import Tooltip from '@/components/Tooltip';
-import { Script, GenerateScriptResponse } from '@/types';
+import { Script } from '@/types';
+import api from '@/services/api';
 
 const FORM_DATA_STORAGE_KEY = 'scriptGenerationFormData';
 
@@ -95,8 +96,16 @@ const ScriptGenerationPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await axios.post<GenerateScriptResponse>('/api/generate_script', formData);
-      localStorage.setItem('generatedScript', JSON.stringify(response.data.script));
+      const script = await api.generateScript({
+        product_name: formData.productName,
+        target_audience: formData.targetAudience,
+        key_selling_points: formData.keySellingPoints,
+        tone: formData.tone,
+        ad_length: formData.adLength,
+        speaker_voice: formData.adSpeakerVoice
+      });
+      
+      localStorage.setItem('generatedScript', JSON.stringify(script));
       // Keep the form data in localStorage (don't clear it)
       router.push('/results');
     } catch (error) {
