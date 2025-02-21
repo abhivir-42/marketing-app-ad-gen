@@ -50,32 +50,50 @@ class RefineScriptResponse(BaseModel):
 logging.basicConfig(level=logging.DEBUG)
 
 def parse_script_output(output: str) -> List[Dict[str, str]]:
-    """Parse the script output from the crew into a list of script objects."""
+    """Parse the script output from the crew into a list of script objects.
+    Expected format is a list of tuples, where each tuple contains:
+    ("script line as quoted string", "art direction as quoted string")
+    """
     try:
         # First try to parse as JSON
         try:
             data = json.loads(output)
             if isinstance(data, list):
-                return [{"line": item[0], "artDirection": item[1]} for item in data]
+                # Each item should be a tuple/list of two strings
+                scripts = []
+                for item in data:
+                    if isinstance(item, (list, tuple)) and len(item) == 2:
+                        script_line = item[0]
+                        art_direction = item[1]
+                        # Remove any extra quotes if present
+                        if isinstance(script_line, str) and isinstance(art_direction, str):
+                            scripts.append({
+                                "line": script_line,
+                                "artDirection": art_direction
+                            })
+                return scripts
         except json.JSONDecodeError:
-            pass
+            # If not JSON, try to parse as Python literal
+            import ast
+            try:
+                # Safely evaluate the string as a Python literal
+                data = ast.literal_eval(output)
+                if isinstance(data, list):
+                    return [
+                        {
+                            "line": item[0],
+                            "artDirection": item[1]
+                        }
+                        for item in data
+                        if isinstance(item, (list, tuple)) and len(item) == 2
+                    ]
+            except (SyntaxError, ValueError):
+                pass
 
-        # If not JSON, try to parse as line-by-line format
-        scripts = []
-        for line in output.strip().split('\n'):
-            if '|' in line:
-                script_line, art_direction = line.split('|', 1)
-                scripts.append({
-                    "line": script_line.strip(),
-                    "artDirection": art_direction.strip()
-                })
-            else:
-                # If no art direction, use empty string
-                scripts.append({
-                    "line": line.strip(),
-                    "artDirection": ""
-                })
-        return scripts
+        # If all parsing attempts fail, log the raw output and raise an error
+        logging.error(f"Could not parse output format. Raw output: {output}")
+        raise ValueError("Output format not recognized")
+
     except Exception as e:
         logging.error(f"Error parsing script output: {str(e)}")
         logging.error(f"Raw output: {output}")
