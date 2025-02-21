@@ -200,8 +200,13 @@ const ResultsPage: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <p className="text-white">{item.line}</p>
-                        <p className="text-gray-400 text-sm italic">{item.artDirection}</p>
+                        <p className="text-white text-lg">{item.line}</p>
+                        {item.artDirection && (
+                          <div className="mt-2 flex items-start space-x-2">
+                            <span className="text-purple-400 text-sm font-medium">Art Direction:</span>
+                            <p className="text-gray-300 text-sm italic flex-1">{item.artDirection}</p>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>

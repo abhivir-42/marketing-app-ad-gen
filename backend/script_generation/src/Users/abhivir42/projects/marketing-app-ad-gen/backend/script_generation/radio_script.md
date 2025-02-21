@@ -1,7 +1,8 @@
-[
-  ("Step onto the field with the power of champions.", "Confident and commanding, with a slight pause after 'power' for emphasis."),
-  ("Introducing Nike shoes, worn by the world's best athletes.", "Slightly faster pace, energized, with warmth to reflect the luxury feel."),
-  ("Crafted for performance, designed for excellence.", "Smooth and flowing, with each word pronounced clearly to convey quality."),
-  ("Elevate your game and embrace the elite.", "Inspirational tone, uplifting, with a slight rise in pitch at 'elevate' and 'elite'."),
-  ("Join the ranks of greatness. Choose Nike.", "Urgent and compelling, encouraging action with a firm finish on 'Nike'.")
+[  
+  ("Introducing the unparalleled Nike Football Shoes, designed for champions.", "Voice should be strong and authoritative, projecting confidence and exclusivity."),  
+  ("Worn by the best athletes on the planet.", "Tone should shift to awe-inspiring, with a slight pause to emphasize the word 'best'.") ,  
+  ("Crafted with cutting-edge technology for performance that speaks for itself.", "Deliver with a smooth, luxury cadence, highlighting each word for impact."),  
+  ("Step onto the field with the same edge as your heroes.", "Emphasize 'edge' with a hint of excitement and inspiration."),  
+  ("Elevate your game. Elevate your legacy.", "Deliver with a powerful and uplifting tone, as if rallying the audience to take action."),  
+  ("Nike: Just Do It.", "Conclude with a commanding and memorable delivery, capturing the essence of the brand.")  
 ]
