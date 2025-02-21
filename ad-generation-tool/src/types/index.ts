@@ -4,11 +4,13 @@ export interface Script {
 }
 
 export interface GenerateScriptResponse {
+  success: boolean;
   script: Script[];
 }
 
 export interface RefineScriptResponse {
-  script: Script[];
+  status: string;
+  data: Script[];
 }
 
 export interface GenerateAudioResponse {
