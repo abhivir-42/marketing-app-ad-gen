@@ -5,6 +5,8 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import ErrorMessage from '@/components/ErrorMessage';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ProgressSteps from '@/components/ProgressSteps';
+import BackButton from '@/components/BackButton';
 import { Script, RefineScriptResponse } from '@/types';
 
 const ResultsPage: React.FC = () => {
@@ -15,6 +17,8 @@ const ResultsPage: React.FC = () => {
   const [isRefining, setIsRefining] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     // Load the script from localStorage
@@ -46,12 +50,20 @@ const ResultsPage: React.FC = () => {
       localStorage.setItem('generatedScript', JSON.stringify(response.data.script));
       setSelectedLines([]);
       setImprovementInstruction('');
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error refining script:', error);
       setError('Failed to refine script. Please try again.');
+      setRetryCount((prev) => prev + 1);
     } finally {
       setIsRefining(false);
     }
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    setRetryCount(0);
+    handleRefine();
   };
 
   const handleGenerateAudio = () => {
@@ -64,6 +76,7 @@ const ResultsPage: React.FC = () => {
     setSelectedLines((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
+    setHasUnsavedChanges(true);
   };
 
   if (isLoading) {
@@ -77,11 +90,20 @@ const ResultsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-          Script & Art Direction Results
-        </h1>
+        <div className="flex items-center justify-between mb-8">
+          <BackButton
+            href="/script"
+            showConfirmation={hasUnsavedChanges}
+            confirmationMessage="You have unsaved changes to your script. Are you sure you want to go back?"
+          />
+          <h1 className="text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+            Script & Art Direction Results
+          </h1>
+        </div>
 
-        <div className="bg-gray-800 rounded-xl p-8 shadow-xl mb-8">
+        <ProgressSteps currentStep={2} />
+
+        <div className="bg-gray-800 rounded-xl p-8 shadow-xl mb-8 mt-12">
           <h2 className="text-2xl font-semibold mb-6">Generated Script</h2>
           <div className="space-y-6">
             {script.map((item, index) => (
@@ -115,11 +137,27 @@ const ResultsPage: React.FC = () => {
           <textarea
             placeholder="How should we improve the selected lines? (e.g., 'Make it more energetic' or 'Add a pun about coffee')"
             value={improvementInstruction}
-            onChange={(e) => setImprovementInstruction(e.target.value)}
+            onChange={(e) => {
+              setImprovementInstruction(e.target.value);
+              setHasUnsavedChanges(true);
+            }}
             className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 min-h-[100px] mb-4"
           />
 
-          {error && <ErrorMessage message={error} />}
+          {error && (
+            <div className="space-y-4">
+              <ErrorMessage message={error} />
+              {retryCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleRetry}
+                  className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          )}
 
           <button
             onClick={handleRefine}

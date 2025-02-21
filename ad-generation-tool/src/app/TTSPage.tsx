@@ -5,6 +5,8 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import ErrorMessage from '@/components/ErrorMessage';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ProgressSteps from '@/components/ProgressSteps';
+import BackButton from '@/components/BackButton';
 import { Script, GenerateAudioResponse } from '@/types';
 
 const TTSPage: React.FC = () => {
@@ -16,9 +18,11 @@ const TTSPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [script, setScript] = useState<Script[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
 
   useEffect(() => {
-    // Load the final script from localStorage
     const savedScript = localStorage.getItem('finalScript');
     if (!savedScript) {
       router.push('/script');
@@ -31,6 +35,11 @@ const TTSPage: React.FC = () => {
   const handleGenerateAudio = async () => {
     setIsGenerating(true);
     setError(null);
+    setGenerationProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setGenerationProgress((prev) => Math.min(prev + 10, 90));
+    }, 1000);
 
     try {
       const response = await axios.post<GenerateAudioResponse>('/api/generate_audio', {
@@ -39,12 +48,34 @@ const TTSPage: React.FC = () => {
         script,
       });
       setAudioUrl(response.data.audioUrl);
+      setHasUnsavedChanges(false);
+      setGenerationProgress(100);
     } catch (error) {
       console.error('Error generating audio:', error);
       setError('Failed to generate audio. Please try again.');
+      setRetryCount((prev) => prev + 1);
     } finally {
       setIsGenerating(false);
+      clearInterval(progressInterval);
     }
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    setRetryCount(0);
+    handleGenerateAudio();
+  };
+
+  const handleSettingChange = (
+    setting: 'speed' | 'pitch',
+    value: number
+  ) => {
+    if (setting === 'speed') {
+      setSpeed(value);
+    } else {
+      setPitch(value);
+    }
+    setHasUnsavedChanges(true);
   };
 
   if (isLoading) {
@@ -58,11 +89,20 @@ const TTSPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-          Generate Your Audio Ad
-        </h1>
+        <div className="flex items-center justify-between mb-8">
+          <BackButton
+            href="/results"
+            showConfirmation={hasUnsavedChanges}
+            confirmationMessage="You have unsaved changes to your audio settings. Are you sure you want to go back?"
+          />
+          <h1 className="text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+            Generate Your Audio Ad
+          </h1>
+        </div>
 
-        <div className="bg-gray-800 rounded-xl p-8 shadow-xl mb-8">
+        <ProgressSteps currentStep={3} />
+
+        <div className="bg-gray-800 rounded-xl p-8 shadow-xl mb-8 mt-12">
           <h2 className="text-2xl font-semibold mb-6">Script Preview</h2>
           <div className="space-y-4 mb-8">
             {script.map((item, index) => (
@@ -87,7 +127,7 @@ const TTSPage: React.FC = () => {
                 max="2"
                 step="0.1"
                 value={speed}
-                onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                onChange={(e) => handleSettingChange('speed', parseFloat(e.target.value))}
                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -107,7 +147,7 @@ const TTSPage: React.FC = () => {
                 max="2"
                 step="0.1"
                 value={pitch}
-                onChange={(e) => setPitch(parseFloat(e.target.value))}
+                onChange={(e) => handleSettingChange('pitch', parseFloat(e.target.value))}
                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -117,7 +157,20 @@ const TTSPage: React.FC = () => {
             </div>
           </div>
 
-          {error && <ErrorMessage message={error} />}
+          {error && (
+            <div className="space-y-4 mt-8">
+              <ErrorMessage message={error} />
+              {retryCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleRetry}
+                  className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          )}
 
           <button
             onClick={handleGenerateAudio}
@@ -127,7 +180,15 @@ const TTSPage: React.FC = () => {
             }`}
           >
             {isGenerating ? (
-              <LoadingSpinner text="Generating Audio..." />
+              <div className="space-y-2">
+                <LoadingSpinner text="Generating Audio..." />
+                <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${generationProgress}%` }}
+                  />
+                </div>
+              </div>
             ) : (
               'Generate Audio'
             )}
