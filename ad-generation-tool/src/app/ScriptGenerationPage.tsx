@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import ErrorMessage from '@/components/ErrorMessage';
@@ -9,20 +9,38 @@ import ProgressSteps from '@/components/ProgressSteps';
 import Tooltip from '@/components/Tooltip';
 import { Script, GenerateScriptResponse } from '@/types';
 
+const FORM_DATA_STORAGE_KEY = 'scriptGenerationFormData';
+
+const initialFormData = {
+  productName: '',
+  targetAudience: '',
+  keySellingPoints: '',
+  tone: '',
+  adLength: '',
+  adSpeakerVoice: ''
+};
+
 const ScriptGenerationPage: React.FC = () => {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    productName: '',
-    targetAudience: '',
-    keySellingPoints: '',
-    tone: '',
-    adLength: '',
-    adSpeakerVoice: ''
-  });
+  const [formData, setFormData] = useState(initialFormData);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+
+  // Load saved form data on component mount
+  useEffect(() => {
+    const savedFormData = localStorage.getItem(FORM_DATA_STORAGE_KEY);
+    if (savedFormData) {
+      try {
+        const parsedData = JSON.parse(savedFormData);
+        setFormData(parsedData);
+      } catch (error) {
+        console.error('Error parsing saved form data:', error);
+        localStorage.removeItem(FORM_DATA_STORAGE_KEY);
+      }
+    }
+  }, []);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -56,7 +74,10 @@ const ScriptGenerationPage: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const updatedFormData = { ...formData, [name]: value };
+    setFormData(updatedFormData);
+    // Save to localStorage on each change
+    localStorage.setItem(FORM_DATA_STORAGE_KEY, JSON.stringify(updatedFormData));
     // Clear error when user starts typing
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: '' }));
@@ -76,6 +97,7 @@ const ScriptGenerationPage: React.FC = () => {
     try {
       const response = await axios.post<GenerateScriptResponse>('/api/generate_script', formData);
       localStorage.setItem('generatedScript', JSON.stringify(response.data.script));
+      // Keep the form data in localStorage (don't clear it)
       router.push('/results');
     } catch (error) {
       console.error('Error generating script:', error);
@@ -91,6 +113,20 @@ const ScriptGenerationPage: React.FC = () => {
     setRetryCount(0);
     handleSubmit(new Event('submit') as any);
   };
+
+  // Add cleanup function for when user leaves the flow
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Clear form data when user closes/refreshes the page
+      localStorage.removeItem(FORM_DATA_STORAGE_KEY);
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
