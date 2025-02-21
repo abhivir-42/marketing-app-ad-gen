@@ -3,11 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-
-interface Script {
-  line: string;
-  artDirection: string;
-}
+import ErrorMessage from '@/components/ErrorMessage';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { Script, RefineScriptResponse } from '@/types';
 
 const ResultsPage: React.FC = () => {
   const router = useRouter();
@@ -16,6 +14,7 @@ const ResultsPage: React.FC = () => {
   const [improvementInstruction, setImprovementInstruction] = useState('');
   const [isRefining, setIsRefining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Load the script from localStorage
@@ -25,6 +24,7 @@ const ResultsPage: React.FC = () => {
       return;
     }
     setScript(JSON.parse(savedScript));
+    setIsLoading(false);
   }, [router]);
 
   const handleRefine = async () => {
@@ -36,7 +36,7 @@ const ResultsPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await axios.post<{ script: Script[] }>('/api/refine_script', {
+      const response = await axios.post<RefineScriptResponse>('/api/refine_script', {
         selectedLines,
         improvementInstruction,
         script,
@@ -65,6 +65,14 @@ const ResultsPage: React.FC = () => {
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center">
+        <LoadingSpinner text="Loading Script..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
@@ -110,6 +118,9 @@ const ResultsPage: React.FC = () => {
             onChange={(e) => setImprovementInstruction(e.target.value)}
             className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 min-h-[100px] mb-4"
           />
+
+          {error && <ErrorMessage message={error} />}
+
           <button
             onClick={handleRefine}
             disabled={isRefining || selectedLines.length === 0 || !improvementInstruction}
@@ -120,13 +131,7 @@ const ResultsPage: React.FC = () => {
             }`}
           >
             {isRefining ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Refining Script...
-              </span>
+              <LoadingSpinner text="Refining Script..." />
             ) : (
               'Refine with AI'
             )}
