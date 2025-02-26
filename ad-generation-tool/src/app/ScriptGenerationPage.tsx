@@ -21,6 +21,100 @@ const initialFormData = {
   adSpeakerVoice: ''
 };
 
+// Industry templates to help users get started
+const industryTemplates = [
+  {
+    name: 'Food & Beverage',
+    icon: '🍔',
+    templates: [
+      {
+        name: 'Restaurant Promotion',
+        data: {
+          productName: 'Downtown Bistro',
+          targetAudience: 'Urban professionals, foodies, couples looking for date night spots',
+          keySellingPoints: 'Farm to table ingredients, award-winning chef, intimate atmosphere, seasonal menu, craft cocktails, outdoor seating',
+          tone: 'Sophisticated yet welcoming',
+          adLength: '30s',
+          adSpeakerVoice: 'Professional'
+        }
+      },
+      {
+        name: 'Coffee Shop',
+        data: {
+          productName: 'Morning Brew Coffee',
+          targetAudience: 'Commuters, students, remote workers, coffee enthusiasts',
+          keySellingPoints: 'Ethically sourced beans, handcrafted drinks, cozy atmosphere, free wifi, housemade pastries, loyalty program',
+          tone: 'Warm and inviting',
+          adLength: '15s',
+          adSpeakerVoice: 'Casual'
+        }
+      }
+    ]
+  },
+  {
+    name: 'Retail',
+    icon: '🛍️',
+    templates: [
+      {
+        name: 'Clothing Sale',
+        data: {
+          productName: 'Urban Style Clothing',
+          targetAudience: 'Fashion-conscious young adults between 18-35',
+          keySellingPoints: 'End of season sale, up to 70% off, latest fashion trends, sustainable materials, exclusive designs, limited time offer',
+          tone: 'Energetic and urgent',
+          adLength: '30s',
+          adSpeakerVoice: 'Upbeat'
+        }
+      },
+      {
+        name: 'Electronics Store',
+        data: {
+          productName: 'TechZone Electronics',
+          targetAudience: 'Tech enthusiasts, professionals, families upgrading home devices',
+          keySellingPoints: 'Latest gadgets, expert staff, price match guarantee, extended warranty options, free setup service, trade-in program',
+          tone: 'Knowledgeable and helpful',
+          adLength: '60s',
+          adSpeakerVoice: 'Professional'
+        }
+      }
+    ]
+  },
+  {
+    name: 'Healthcare',
+    icon: '⚕️',
+    templates: [
+      {
+        name: 'Clinic Services',
+        data: {
+          productName: 'HealthFirst Family Clinic',
+          targetAudience: 'Families, seniors, individuals seeking preventative care',
+          keySellingPoints: 'Same-day appointments, caring staff, comprehensive services, modern facilities, accepts most insurance, telehealth options',
+          tone: 'Compassionate and reassuring',
+          adLength: '60s',
+          adSpeakerVoice: 'Warm'
+        }
+      }
+    ]
+  },
+  {
+    name: 'Automotive',
+    icon: '🚗',
+    templates: [
+      {
+        name: 'Car Dealership',
+        data: {
+          productName: 'AutoPrime Dealership',
+          targetAudience: 'New car buyers, families looking to upgrade, professionals',
+          keySellingPoints: 'Year-end clearance, 0% financing, factory rebates, huge inventory, trusted service department, complimentary maintenance',
+          tone: 'Confident and exciting',
+          adLength: '30s',
+          adSpeakerVoice: 'Professional'
+        }
+      }
+    ]
+  }
+];
+
 const ScriptGenerationPage: React.FC = () => {
   const router = useRouter();
   const [formData, setFormData] = useState(initialFormData);
@@ -28,6 +122,8 @@ const ScriptGenerationPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
 
   // Load saved form data on component mount
   useEffect(() => {
@@ -85,6 +181,21 @@ const ScriptGenerationPage: React.FC = () => {
     }
   };
 
+  const applyTemplate = (templateData: Partial<typeof initialFormData>) => {
+    const updatedFormData = { ...formData, ...templateData };
+    setFormData(updatedFormData);
+    localStorage.setItem(FORM_DATA_STORAGE_KEY, JSON.stringify(updatedFormData));
+    setShowTemplates(false);
+    // Clear any form errors for fields that were filled by the template
+    const updatedErrors = { ...formErrors };
+    Object.keys(templateData).forEach(key => {
+      if (updatedErrors[key]) {
+        delete updatedErrors[key];
+      }
+    });
+    setFormErrors(updatedErrors);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -105,9 +216,13 @@ const ScriptGenerationPage: React.FC = () => {
         speaker_voice: formData.adSpeakerVoice
       });
       
-      localStorage.setItem('generatedScript', JSON.stringify(script));
-      // Keep the form data in localStorage (don't clear it)
-      router.push('/results');
+      if (script && script.length > 0) {
+        // Store the generated script in localStorage
+        localStorage.setItem('generatedScript', JSON.stringify(script));
+        router.push('/results');
+      } else {
+        throw new Error('Received empty or invalid script');
+      }
     } catch (error) {
       console.error('Error generating script:', error);
       setError('Failed to generate script. Please try again.');
@@ -120,40 +235,113 @@ const ScriptGenerationPage: React.FC = () => {
   const handleRetry = () => {
     setError(null);
     setRetryCount(0);
-    handleSubmit(new Event('submit') as any);
+    handleSubmit({ preventDefault: () => {} } as React.FormEvent);
   };
 
-  // Add cleanup function for when user leaves the flow
+  // Add window beforeunload event to warn about unsaved changes
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      // Clear form data when user closes/refreshes the page
-      localStorage.removeItem(FORM_DATA_STORAGE_KEY);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const isDirty = Object.values(formData).some(value => value !== '');
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, []);
+  }, [formData]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-4xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-          Create Your Ad Script
+        <h1 className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+          Script Creation
         </h1>
 
         <ProgressSteps currentStep={1} />
-        
-        <form onSubmit={handleSubmit} className="space-y-8 bg-gray-800 rounded-xl p-8 shadow-xl mt-12">
+
+        <div className="mt-12 mb-6">
+          <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 backdrop-blur-sm rounded-xl p-6 mb-6 shadow-xl border border-purple-900/20">
+            <h2 className="text-2xl font-semibold mb-4">Get Started Faster</h2>
+            <p className="text-gray-300 mb-6">
+              Browse our industry templates for inspiration or start from scratch with your own creative vision.
+            </p>
+            
+            <button
+              type="button"
+              onClick={() => setShowTemplates(!showTemplates)}
+              className="flex items-center justify-center w-full py-3 rounded-lg bg-purple-600/70 hover:bg-purple-600 transition-colors font-medium"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              {showTemplates ? 'Hide Templates' : 'Browse Industry Templates'}
+            </button>
+          </div>
+          
+          {showTemplates && (
+            <div className="bg-gray-800 rounded-xl p-6 mb-8 shadow-xl transition-all duration-300">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                {industryTemplates.map((industry) => (
+                  <button
+                    key={industry.name}
+                    onClick={() => setSelectedIndustry(selectedIndustry === industry.name ? null : industry.name)}
+                    className={`p-4 rounded-lg text-center transition-all ${
+                      selectedIndustry === industry.name 
+                        ? 'bg-purple-900/60 border border-purple-500 shadow-lg' 
+                        : 'bg-gray-700/60 hover:bg-gray-700 border border-gray-700'
+                    }`}
+                  >
+                    <div className="text-3xl mb-2">{industry.icon}</div>
+                    <div className="font-medium">{industry.name}</div>
+                  </button>
+                ))}
+              </div>
+              
+              {selectedIndustry && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium border-b border-gray-700 pb-2">
+                    {selectedIndustry} Templates
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {industryTemplates
+                      .find(industry => industry.name === selectedIndustry)
+                      ?.templates.map((template) => (
+                        <div 
+                          key={template.name}
+                          className="bg-gray-700/50 p-4 rounded-lg border border-gray-600 hover:border-purple-500 transition-colors cursor-pointer"
+                          onClick={() => applyTemplate(template.data)}
+                        >
+                          <h4 className="font-medium text-purple-400 mb-1">{template.name}</h4>
+                          <p className="text-sm text-gray-300 line-clamp-2">{template.data.keySellingPoints}</p>
+                          <button 
+                            className="mt-3 text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors"
+                          >
+                            Apply Template
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-xl p-8 shadow-xl">
+          <h2 className="text-2xl font-semibold mb-6">Enter Your Ad Details</h2>
+          
           <div className="space-y-6">
             <div>
               <div className="flex items-center mb-2">
                 <label className="block text-sm font-medium text-gray-300">
-                  Product Name
+                  Product or Service Name
                 </label>
-                <Tooltip text="Enter the name of your product or service">
+                <Tooltip text="The name of the product, service, or business you're advertising">
                   <svg className="w-4 h-4 ml-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
@@ -167,7 +355,7 @@ const ScriptGenerationPage: React.FC = () => {
                 className={`w-full px-4 py-3 rounded-lg bg-gray-700 border text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                   formErrors.productName ? 'border-red-500' : 'border-gray-600'
                 }`}
-                placeholder="e.g., Morning Brew Coffee"
+                placeholder="e.g., Morning Brew Coffee Shop"
               />
               {formErrors.productName && (
                 <p className="mt-1 text-sm text-red-400">{formErrors.productName}</p>
@@ -179,7 +367,7 @@ const ScriptGenerationPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-300">
                   Target Audience
                 </label>
-                <Tooltip text="Describe your target audience (e.g., Teens, Young Adults, Parents, Small Business Owners, Professionals)">
+                <Tooltip text="Who is your ad aimed at? Be as specific as possible">
                   <svg className="w-4 h-4 ml-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
@@ -193,7 +381,7 @@ const ScriptGenerationPage: React.FC = () => {
                 className={`w-full px-4 py-3 rounded-lg bg-gray-700 border text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                   formErrors.targetAudience ? 'border-red-500' : 'border-gray-600'
                 }`}
-                placeholder="e.g., Young Adults, Parents, Small Business Owners"
+                placeholder="e.g., Working professionals aged 25-45 who commute daily"
               />
               {formErrors.targetAudience && (
                 <p className="mt-1 text-sm text-red-400">{formErrors.targetAudience}</p>
