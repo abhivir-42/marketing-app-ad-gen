@@ -50,11 +50,16 @@ class RefineScriptResponse(BaseModel):
 logging.basicConfig(level=logging.DEBUG)
 
 def parse_script_output(output: str) -> List[Dict[str, str]]:
-    """Parse the script output from the crew into a list of script objects.
-    Expected format is a list of tuples, where each tuple contains:
-    ("script line as quoted string", "art direction as quoted string")
-    """
+    """Parse the script output from the crew into a list of script objects."""
     try:
+        # Clean up the output string to handle common formatting issues
+        output = output.strip()
+        # Remove trailing period before closing bracket if present
+        if output.endswith(').'):
+            output = output[:-1] + ')'
+        if output.endswith(').  ]'):
+            output = output[:-5] + ')]'
+            
         # First try to parse as JSON
         try:
             data = json.loads(output)
@@ -88,7 +93,19 @@ def parse_script_output(output: str) -> List[Dict[str, str]]:
                         if isinstance(item, (list, tuple)) and len(item) == 2
                     ]
             except (SyntaxError, ValueError):
-                pass
+                # Last resort: try to fix common formatting issues with regex
+                import re
+                # Find all pairs of quoted strings
+                pattern = r'\("([^"]+)",\s*"([^"]+)"\)'
+                matches = re.findall(pattern, output)
+                if matches:
+                    return [
+                        {
+                            "line": line,
+                            "artDirection": art
+                        }
+                        for line, art in matches
+                    ]
 
         # If all parsing attempts fail, log the raw output and raise an error
         logging.error(f"Could not parse output format. Raw output: {output}")
