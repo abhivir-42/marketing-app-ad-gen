@@ -7,7 +7,7 @@ import ErrorMessage from '@/components/ErrorMessage';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ProgressSteps from '@/components/ProgressSteps';
 import BackButton from '@/components/BackButton';
-import { Script, RefineScriptResponse } from '@/types';
+import { Script, RefineScriptResponse, GenerateAudioResponse } from '@/types';
 import api from '@/services/api';
 
 interface EditableScriptLine {
@@ -26,6 +26,14 @@ const ResultsPage: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [editingLine, setEditingLine] = useState<EditableScriptLine | null>(null);
+  // TTS related states
+  const [speed, setSpeed] = useState(1);
+  const [pitch, setPitch] = useState(1);
+  const [audioUrl, setAudioUrl] = useState('');
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const [audioRetryCount, setAudioRetryCount] = useState(0);
+  const [generationProgress, setGenerationProgress] = useState(0);
 
   useEffect(() => {
     // Load the script from localStorage
@@ -87,10 +95,49 @@ const ResultsPage: React.FC = () => {
     handleRefine();
   };
 
-  const handleGenerateAudio = () => {
-    // Store the final script for the TTS page
-    localStorage.setItem('finalScript', JSON.stringify(script));
-    router.push('/tts');
+  const handleGenerateAudio = async () => {
+    setIsGeneratingAudio(true);
+    setAudioError(null);
+    setGenerationProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setGenerationProgress((prev) => Math.min(prev + 10, 90));
+    }, 1000);
+
+    try {
+      const response = await axios.post<GenerateAudioResponse>('/api/generate_audio', {
+        speed,
+        pitch,
+        script,
+      });
+      setAudioUrl(response.data.audioUrl);
+      setGenerationProgress(100);
+    } catch (error) {
+      console.error('Error generating audio:', error);
+      setAudioError('Failed to generate audio. Please try again.');
+      setAudioRetryCount((prev) => prev + 1);
+    } finally {
+      setIsGeneratingAudio(false);
+      clearInterval(progressInterval);
+    }
+  };
+
+  const handleAudioRetry = () => {
+    setAudioError(null);
+    setAudioRetryCount(0);
+    handleGenerateAudio();
+  };
+
+  const handleSettingChange = (
+    setting: 'speed' | 'pitch',
+    value: number
+  ) => {
+    if (setting === 'speed') {
+      setSpeed(value);
+    } else {
+      setPitch(value);
+    }
+    setHasUnsavedChanges(true);
   };
 
   const toggleLineSelection = (index: number) => {
@@ -296,12 +343,108 @@ const ResultsPage: React.FC = () => {
           </button>
         </div>
 
-        <button
-          onClick={handleGenerateAudio}
-          className="w-full py-4 px-6 rounded-lg bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold text-lg hover:from-green-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200"
-        >
-          Generate Final Audio →
-        </button>
+        {/* Voice Settings and Audio Generation */}
+        <div className="bg-gray-800 rounded-xl p-8 shadow-xl mb-8">
+          <h2 className="text-2xl font-semibold mb-6">Voice Settings</h2>
+          
+          <div className="space-y-8">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Speed
+                <span className="ml-2 text-gray-500">({speed.toFixed(1)}x)</span>
+              </label>
+              <input
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={speed}
+                onChange={(e) => handleSettingChange('speed', parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Slower</span>
+                <span>Faster</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Pitch
+                <span className="ml-2 text-gray-500">({pitch.toFixed(1)})</span>
+              </label>
+              <input
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={pitch}
+                onChange={(e) => handleSettingChange('pitch', parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Lower</span>
+                <span>Higher</span>
+              </div>
+            </div>
+          </div>
+
+          {audioError && (
+            <div className="space-y-4 mt-8">
+              <ErrorMessage message={audioError} />
+              {audioRetryCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleAudioRetry}
+                  className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={handleGenerateAudio}
+            disabled={isGeneratingAudio}
+            className={`w-full mt-8 py-4 px-6 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 ${
+              isGeneratingAudio ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            {isGeneratingAudio ? (
+              <div className="space-y-2">
+                <LoadingSpinner text="Generating Audio..." />
+                <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${generationProgress}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              'Generate Audio'
+            )}
+          </button>
+        </div>
+
+        {/* Audio Preview & Download */}
+        {audioUrl && (
+          <div className="bg-gray-800 rounded-xl p-8 shadow-xl mb-8">
+            <h2 className="text-2xl font-semibold mb-6">Preview & Download</h2>
+            <div className="space-y-6">
+              <div className="bg-gray-700 rounded-lg p-4">
+                <audio controls className="w-full" src={audioUrl} />
+              </div>
+              <a
+                href={audioUrl}
+                download="ad-audio.mp3"
+                className="block w-full py-4 px-6 rounded-lg bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold text-lg text-center hover:from-green-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200"
+              >
+                Download MP3
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
