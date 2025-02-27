@@ -12,9 +12,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ audioUrl: mockAudioUrl });
   } catch (error) {
     console.error('Error generating audio:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate audio' },
-      { status: 500 }
-    );
+    
+    let errorMessage = 'Failed to generate audio';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // More specific error handling
+      if (errorMessage.includes('timeout')) {
+        errorMessage = 'Audio generation timed out. Please try again.';
+        statusCode = 504;
+      } else if (errorMessage.includes('unauthorized')) {
+        errorMessage = 'Authentication failed with TTS service';
+        statusCode = 401;
+      }
+    }
+    
+    return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
 } 
