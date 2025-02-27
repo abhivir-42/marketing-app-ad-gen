@@ -528,19 +528,6 @@ const ScriptGenerationPage: React.FC = () => {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {hasExistingScript && (
-              <button
-                type="button"
-                onClick={() => router.push('/results')}
-                className="w-full py-4 px-6 rounded-lg border-2 border-purple-500 text-purple-300 font-medium hover:bg-purple-900/20 transition-all duration-200 flex items-center justify-center"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-                </svg>
-                Return to Your Generated Script
-              </button>
-            )}
-            
             <button
               type="submit"
               disabled={isLoading}
@@ -554,6 +541,19 @@ const ScriptGenerationPage: React.FC = () => {
                 'Generate Script'
               )}
             </button>
+            
+            {hasExistingScript && (
+              <button
+                type="button"
+                onClick={() => router.push('/results')}
+                className="w-full py-4 px-6 rounded-lg border-2 border-purple-500 text-purple-300 font-medium hover:bg-purple-900/20 transition-all duration-200 flex items-center justify-center"
+              >
+                Return to Your Generated Script
+                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+            )}
           </div>
         </form>
       </div>
