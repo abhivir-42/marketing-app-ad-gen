@@ -498,8 +498,10 @@ const ScriptGenerationPage: React.FC = () => {
             </div>
           </div>
 
+          <div className="mb-8"></div>
+
           {error && (
-            <div className="space-y-4">
+            <div className="space-y-4 mb-6">
               <ErrorMessage message={error} />
               {retryCount > 0 && (
                 <button
