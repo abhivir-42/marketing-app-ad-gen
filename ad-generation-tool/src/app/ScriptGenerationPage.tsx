@@ -527,13 +527,16 @@ const ScriptGenerationPage: React.FC = () => {
             </div>
           )}
 
-          <div className="flex flex-col space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {hasExistingScript && (
               <button
                 type="button"
                 onClick={() => router.push('/results')}
-                className="py-3 px-6 rounded-lg border border-purple-500 text-purple-400 font-medium hover:bg-purple-900/20 transition-all duration-200"
+                className="w-full py-4 px-6 rounded-lg border-2 border-purple-500 text-purple-300 font-medium hover:bg-purple-900/20 transition-all duration-200 flex items-center justify-center"
               >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                </svg>
                 Return to Your Generated Script
               </button>
             )}
@@ -541,9 +544,9 @@ const ScriptGenerationPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-4 px-6 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 ${
+              className={`w-full py-4 px-6 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 ${
                 isLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              } ${!hasExistingScript ? 'md:col-span-2' : ''}`}
             >
               {isLoading ? (
                 <LoadingSpinner text="Generating Script..." />
