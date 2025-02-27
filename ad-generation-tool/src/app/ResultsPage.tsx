@@ -745,11 +745,12 @@ const ResultsPage: React.FC = () => {
           
           <div className="space-y-8">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Speed
-                <span className="ml-2 text-gray-500">({speed.toFixed(1)}x)</span>
-              </label>
+              <div className="flex justify-between mb-2">
+                <label htmlFor="speed" className="text-sm font-medium text-gray-300">Speed</label>
+                <span className="text-sm text-gray-400">{speed.toFixed(1)}x</span>
+              </div>
               <input
+                id="speed"
                 type="range"
                 min="0.5"
                 max="2"
@@ -758,18 +759,15 @@ const ResultsPage: React.FC = () => {
                 onChange={(e) => handleSettingChange('speed', parseFloat(e.target.value))}
                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Slower</span>
-                <span>Faster</span>
-              </div>
             </div>
-
+            
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Pitch
-                <span className="ml-2 text-gray-500">({pitch.toFixed(1)})</span>
-              </label>
+              <div className="flex justify-between mb-2">
+                <label htmlFor="pitch" className="text-sm font-medium text-gray-300">Pitch</label>
+                <span className="text-sm text-gray-400">{pitch.toFixed(1)}x</span>
+              </div>
               <input
+                id="pitch"
                 type="range"
                 min="0.5"
                 max="2"
@@ -778,10 +776,6 @@ const ResultsPage: React.FC = () => {
                 onChange={(e) => handleSettingChange('pitch', parseFloat(e.target.value))}
                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Lower</span>
-                <span>Higher</span>
-              </div>
             </div>
           </div>
 
