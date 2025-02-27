@@ -360,7 +360,7 @@ const ResultsPage: React.FC = () => {
             showConfirmation={hasUnsavedChanges}
             confirmationMessage="You have unsaved changes to your script. Are you sure you want to go back?"
           />
-          <h1 className="text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+          <h1 className="text-4xl font-bold text-center mx-auto bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
             Iterate & Produce
           </h1>
         </div>
