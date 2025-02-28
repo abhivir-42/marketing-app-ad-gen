@@ -7,8 +7,38 @@ import ErrorMessage from '@/components/ErrorMessage';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ProgressSteps from '@/components/ProgressSteps';
 import BackButton from '@/components/BackButton';
-import { Script, RefineScriptResponse, GenerateAudioResponse } from '@/types';
+import { Script, RefineScriptResponse, GenerateAudioResponse, ValidationMetadata } from '@/types';
 import api from '@/services/api';
+
+/**
+ * Radio Ad Script Generation & Refinement Tool
+ * ============================================
+ * 
+ * MULTI-LAYER VALIDATION SYSTEM OVERVIEW
+ * --------------------------------------
+ * This application implements a sophisticated dual-layer validation system designed 
+ * to protect script integrity during the AI refinement process:
+ * 
+ * 1. BACKEND VALIDATION LAYER:
+ *    - Server-side validation of all script modifications
+ *    - Automated detection and reversion of unauthorized changes
+ *    - Enforcement of script structure preservation
+ *    - Detailed validation metadata returned to frontend
+ * 
+ * 2. FRONTEND SAFEGUARDS LAYER:
+ *    - Additional verification in the API service (api.refineScriptWithValidation)
+ *    - Independent validation of all modifications against selected sentences
+ *    - Comprehensive tracking of attempted changes for transparency
+ * 
+ * 3. USER FEEDBACK MECHANISMS:
+ *    - ValidationFeedback component displays detailed alerts about validation issues
+ *    - Side-by-side comparison of preserved content vs. attempted changes
+ *    - Persistent validation notifications across page refreshes
+ *    - Color-coded highlighting of modified content
+ * 
+ * This multi-layered approach ensures users can safely refine selected portions
+ * of their scripts while maintaining the integrity of unselected content.
+ */
 
 interface EditableScriptLine {
   index: number;
@@ -30,6 +60,92 @@ interface AudioVersion {
   pitch: number;
   description: string;
 }
+
+// Add ValidationFeedback component before ResultsPage
+interface ValidationFeedbackProps {
+  validation: ValidationMetadata | null;
+  selectedLines: number[];
+}
+
+/**
+ * ValidationFeedback Component
+ * ------------------------------
+ * Displays feedback when the validation system detects unauthorized changes.
+ * This component is critical for the multi-layer validation system, showing users:
+ * 1. When changes were attempted on non-selected sentences
+ * 2. Which original content was preserved
+ * 3. What unauthorized changes were blocked
+ */
+const ValidationFeedback: React.FC<ValidationFeedbackProps> = ({ validation, selectedLines }) => {
+  // Skip rendering if no validation data is present
+  if (!validation) return null;
+  
+  // Only show validation feedback if there are issues to report
+  const hasIssues = validation.had_unauthorized_changes || validation.had_length_mismatch;
+  if (!hasIssues) return null;
+  
+  // Visual styling based on validation status
+  const bgColor = hasIssues ? 'bg-amber-50' : 'bg-green-50';
+  const borderColor = hasIssues ? 'border-amber-500' : 'border-green-500';
+  const textColor = hasIssues ? 'text-amber-800' : 'text-green-800';
+  
+  /**
+   * The validation feedback panel provides:
+   * 1. Clear visual indicators using warning colors
+   * 2. Detailed explanation of what happened
+   * 3. Side-by-side comparison of:
+   *    - What changes were attempted (shown in red/strikethrough)
+   *    - What content was preserved (shown in green)
+   * 4. Specific information about which sentences were protected
+   */
+  return (
+    <div className={`mt-4 p-4 ${bgColor} ${borderColor} border rounded-md ${textColor}`}>
+      <h3 className="font-semibold text-lg mb-2">Validation Results</h3>
+      
+      {/* UNAUTHORIZED CHANGES SECTION: Display details about prevented modifications */}
+      {validation.had_unauthorized_changes && (
+        <div className="mb-2">
+          <p className="font-medium">⚠️ Unauthorized changes detected and reverted:</p>
+          <p className="text-sm mb-2">
+            The system protected sentences you didn't select for modification.
+            Only sentences you explicitly select can be changed.
+          </p>
+          <ul className="ml-6 list-disc">
+            {validation.reverted_changes.map((change, idx) => (
+              <li key={idx}>
+                Line {change.index}: 
+                {/* Show attempted change (crossed out in red) */}
+                <span className="line-through text-red-600 mx-2">
+                  {change.attempted.line.substring(0, 40)}
+                  {change.attempted.line.length > 40 ? '...' : ''}
+                </span>
+                {/* Show preserved original content (in green) */}
+                <span className="text-green-600">
+                  → {change.original.line.substring(0, 40)}
+                  {change.original.line.length > 40 ? '...' : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-sm italic">
+            Note: Only sentences at indices [{selectedLines.join(', ')}] were authorized for modification.
+          </p>
+        </div>
+      )}
+      
+      {validation.had_length_mismatch && (
+        <div>
+          <p className="font-medium">⚠️ Script length mismatch adjusted:</p>
+          <p>Expected {validation.original_length} sentences, received {validation.received_length}.</p>
+        </div>
+      )}
+      
+      <p className="mt-3 text-sm">
+        The script has been automatically adjusted to maintain integrity.
+      </p>
+    </div>
+  );
+};
 
 const ResultsPage: React.FC = () => {
   const router = useRouter();
@@ -60,6 +176,40 @@ const ResultsPage: React.FC = () => {
   const [audioVersionDescription, setAudioVersionDescription] = useState('');
   const [showAudioVersions, setShowAudioVersions] = useState(false);
   const [validationFeedback, setValidationFeedback] = useState<string | null>(null);
+  const [validationData, setValidationData] = useState<ValidationMetadata | null>(null);
+
+  /**
+   * VALIDATION DATA PERSISTENCE SYSTEM
+   * ---------------------------------
+   * This useEffect hook ensures that validation data persists across page refreshes.
+   * This is a critical part of the multi-layer validation system:
+   * 
+   * 1. When validation issues are detected (either by backend or frontend)
+   *    the data is stored in localStorage
+   * 
+   * 2. On page load/refresh, this hook checks for stored validation data
+   *    and restores it to the component state
+   * 
+   * 3. This ensures users don't lose important validation feedback even if
+   *    they refresh the page or navigate away temporarily
+   * 
+   * 4. The validation data is only cleared when explicitly dismissed by the user
+   *    or when a new successful refinement occurs with no validation issues
+   */
+  useEffect(() => {
+    // Load validation data from localStorage if it exists
+    const savedValidationData = localStorage.getItem('validationData');
+    if (savedValidationData) {
+      try {
+        const parsedData = JSON.parse(savedValidationData);
+        setValidationData(parsedData);
+      } catch (error) {
+        console.error('Error parsing saved validation data:', error);
+        // Clear corrupted data
+        localStorage.removeItem('validationData');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Load the script from localStorage
@@ -122,7 +272,7 @@ const ResultsPage: React.FC = () => {
     localStorage.setItem('scriptVersionHistory', JSON.stringify(updatedVersions));
   };
 
-  const saveCurrentVersion = (description: string = 'Manual update') => {
+  const saveScriptVersion = (description: string = 'Manual update') => {
     const newVersion: ScriptVersion = {
       id: generateVersionId(),
       timestamp: new Date(),
@@ -136,7 +286,7 @@ const ResultsPage: React.FC = () => {
     return newVersion;
   };
 
-  const restoreVersion = (version: ScriptVersion) => {
+  const restorePreviousVersion = (version: ScriptVersion) => {
     if (hasUnsavedChanges) {
       if (!window.confirm('You have unsaved changes. Are you sure you want to restore a previous version?')) {
         return;
@@ -149,27 +299,43 @@ const ResultsPage: React.FC = () => {
     setComparingVersion(null);
     
     // Save restoration as a new version
-    saveCurrentVersion(`Restored version: ${version.description}`);
+    saveScriptVersion(`Restored version: ${version.description}`);
   };
 
-  const handleRefine = async () => {
+  /**
+   * executeAIRefinement - Handles the process of refining specific sentences in the script
+   * -----------------------------------------------------------------------------
+   * Workflow:
+   * 1. Prepares data for backend including only selected sentences for refinement
+   * 2. Calls API with validation safeguards (both backend and frontend protection)
+   * 3. Updates the script with validated changes
+   * 4. Stores validation results for user feedback
+   * 5. Persists validation state even across page refreshes
+   */
+  const executeAIRefinement = async () => {
+    // Validate user input before proceeding
     if (selectedLines.length === 0 || !improvementInstruction) {
       setError('Please select the sentences to be refined and tell us what kind of change you want to make.');
       return;
     }
+    // Reset state for new refinement process
     setIsRefining(true);
     setError(null);
     setValidationFeedback(null);
+    setValidationData(null);
 
     try {
-      // Get the original form data from localStorage
+      // STEP 1: PREPARE REQUEST DATA
+      // Retrieve original form data to maintain context for AI
       const formData = JSON.parse(localStorage.getItem('scriptGenerationFormData') || '{}');
       
-      // Convert script to the format expected by the backend
+      // Format script for API request (convert to tuple format expected by backend)
       const currentScript: [string, string][] = script.map(item => [item.line, item.artDirection]);
       
-      const result = await api.refineScript({
-        selected_sentences: selectedLines,
+      // STEP 2: CALL API WITH VALIDATION SAFEGUARDS
+      // The refineScriptWithValidation function includes both backend and frontend validation
+      const result = await api.refineScriptWithValidation({
+        selected_sentences: selectedLines,       // Only these sentences should be modified
         improvement_instruction: improvementInstruction,
         current_script: currentScript,
         key_selling_points: formData.keySellingPoints || '',
@@ -178,23 +344,39 @@ const ResultsPage: React.FC = () => {
       });
 
       if (result && result.script && result.script.length > 0) {
-        // Save current version before updating
-        saveCurrentVersion(`AI refinement: ${improvementInstruction}`);
+        // STEP 3: SAVE VERSION HISTORY
+        // Save current version before applying changes to allow for comparison
+        saveScriptVersion(`AI refinement: ${improvementInstruction}`);
         
+        // STEP 4: UPDATE SCRIPT WITH VALIDATED CHANGES
+        // The result.script already contains the safely modified content
         setScript(result.script);
-        // Update localStorage with the refined script
         localStorage.setItem('generatedScript', JSON.stringify(result.script));
         
-        // Show validation feedback if needed
+        // STEP 5: HANDLE VALIDATION FEEDBACK
+        // Process and display validation results to the user
         if (result.validation) {
+          // Store validation data for UI rendering
+          setValidationData(result.validation);
+          
+          // STEP 6: PERSIST VALIDATION STATE
+          // Save validation data to localStorage for persistence across page refreshes
+          localStorage.setItem('validationData', JSON.stringify(result.validation));
+          
+          // STEP 7: DETERMINE VALIDATION STATUS
           const validation = result.validation;
-          if (validation.had_unauthorized_changes) {
-            setValidationFeedback(`Note: Some of your changes affected non-selected lines and were automatically reverted (${validation.reverted_changes.length} affected).`);
-          } else if (validation.had_length_mismatch) {
-            setValidationFeedback(`Note: The refined script had a length mismatch (expected ${validation.original_length}, received ${validation.received_length}) and was adjusted.`);
+          if (validation.had_unauthorized_changes || validation.had_length_mismatch) {
+            // Validation issues detected - will be displayed by ValidationFeedback component
+            console.log('Validation issues detected:', validation);
+          } else {
+            // Success case - no validation issues found
+            setValidationFeedback('Script successfully refined with no validation issues.');
+            localStorage.removeItem('validationData');
           }
         }
         
+        // STEP 8: RESET UI STATE
+        // Clear selection and input after successful refinement
         setSelectedLines([]);
         setImprovementInstruction('');
         setHasUnsavedChanges(false);
@@ -202,6 +384,7 @@ const ResultsPage: React.FC = () => {
         throw new Error('Received empty or invalid script from refinement');
       }
     } catch (error) {
+      // STEP 9: ERROR HANDLING
       console.error('Error refining script:', error);
       setError('Failed to refine script. Please try again.');
       setRetryCount((prev) => prev + 1);
@@ -210,10 +393,10 @@ const ResultsPage: React.FC = () => {
     }
   };
 
-  const handleRetry = () => {
+  const handleRefinementRetry = () => {
     setError(null);
     setRetryCount(0);
-    handleRefine();
+    executeAIRefinement();
   };
 
   const handleGenerateAudio = async () => {
@@ -269,7 +452,26 @@ const ResultsPage: React.FC = () => {
     setHasUnsavedChanges(true);
   };
 
-  const toggleLineSelection = (index: number) => {
+  /**
+   * toggleSentenceSelection - Critical function for the validation system
+   * -----------------------------------------------------------------------------
+   * This function manages which sentences are eligible for modification during refinement.
+   * 
+   * KEY POINTS:
+   * 1. The validation system ONLY allows changes to sentences that have been selected
+   *    through this function
+   * 
+   * 2. Both the backend and frontend validation layers verify that attempted
+   *    modifications are limited to these selected indices
+   * 
+   * 3. Any attempt to modify non-selected sentences will be automatically
+   *    detected and reverted by both validation layers
+   * 
+   * 4. This is the foundation of the targeted refinement approach - ensuring
+   *    that only specific parts of the script can be modified while preserving
+   *    the rest
+   */
+  const toggleSentenceSelection = (index: number) => {
     setSelectedLines((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
@@ -294,13 +496,13 @@ const ResultsPage: React.FC = () => {
       setHasUnsavedChanges(false);
       
       // Save the edited version
-      saveCurrentVersion('Manual line edit');
+      saveScriptVersion('Manual line edit');
     } else {
       setEditingLine({ index, isEditing: true });
     }
   };
 
-  const handleBoxClick = (index: number, event: React.MouseEvent) => {
+  const handleScriptLineClick = (index: number, event: React.MouseEvent) => {
     // Don't trigger selection if clicking the edit button or if we're in edit mode
     const target = event.target as HTMLElement;
     if (
@@ -310,7 +512,7 @@ const ResultsPage: React.FC = () => {
     ) {
       return;
     }
-    toggleLineSelection(index);
+    toggleSentenceSelection(index);
   };
 
   const formatTimestamp = (date: Date) => {
@@ -322,7 +524,7 @@ const ResultsPage: React.FC = () => {
     }).format(date);
   };
 
-  const getLineComparisonClass = (index: number, line: Script) => {
+  const getVersionComparisonHighlight = (index: number, line: Script) => {
     if (!comparingVersion) return '';
     
     // Compare current line with the comparing version's line
@@ -354,6 +556,29 @@ const ResultsPage: React.FC = () => {
     setAudioVersions(updatedVersions);
     saveAudioVersionHistory(updatedVersions);
     return newVersion;
+  };
+
+  /**
+   * dismissValidationAlert - Completes the validation feedback cycle
+   * -----------------------------------------------------------------------------
+   * This function allows users to acknowledge and dismiss validation feedback
+   * after they have reviewed the information about protected content.
+   * 
+   * IMPORTANT ASPECTS:
+   * 1. Clears the validation data from both component state and localStorage
+   * 
+   * 2. This is the only way validation feedback is intentionally cleared
+   *    (besides a new successful refinement with no issues)
+   * 
+   * 3. Ensures users have complete control over when to dismiss validation alerts
+   *    after they've had time to understand which changes were prevented
+   * 
+   * 4. Completes the validation workflow: 
+   *    Selection → Refinement → Validation → Feedback → Acknowledgment
+   */
+  const dismissValidationAlert = () => {
+    setValidationData(null);
+    localStorage.removeItem('validationData');
   };
 
   if (isLoading) {
@@ -440,7 +665,7 @@ const ResultsPage: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          restoreVersion(version);
+                          restorePreviousVersion(version);
                         }}
                         className="text-xs px-2 py-1 bg-blue-600 rounded hover:bg-blue-500"
                       >
@@ -477,7 +702,7 @@ const ResultsPage: React.FC = () => {
               <button
                 onClick={() => {
                   if (versionDescription.trim()) {
-                    saveCurrentVersion(versionDescription);
+                    saveScriptVersion(versionDescription);
                     setVersionDescription('');
                   }
                 }}
@@ -503,12 +728,12 @@ const ResultsPage: React.FC = () => {
             {script.map((item, index) => (
               <div
                 key={index}
-                onClick={(e) => handleBoxClick(index, e)}
+                onClick={(e) => handleScriptLineClick(index, e)}
                 className={`p-4 rounded-lg transition-all duration-200 ${
                   selectedLines.includes(index)
                     ? 'bg-purple-900/50 border border-purple-500 shadow-lg'
                     : 'bg-gray-700/50 hover:bg-gray-700/80 cursor-pointer'
-                } ${editingLine?.index === index ? 'cursor-text' : ''} ${getLineComparisonClass(index, item)}`}
+                } ${editingLine?.index === index ? 'cursor-text' : ''} ${getVersionComparisonHighlight(index, item)}`}
               >
                 <div className="flex items-start space-x-4">
                   <div className={`flex items-center mt-1.5 transition-colors duration-200 ${
@@ -631,7 +856,7 @@ const ResultsPage: React.FC = () => {
               {retryCount > 0 && (
                 <button
                   type="button"
-                  onClick={handleRetry}
+                  onClick={handleRefinementRetry}
                   className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   Retry
@@ -641,7 +866,7 @@ const ResultsPage: React.FC = () => {
           )}
 
           <button
-            onClick={handleRefine}
+            onClick={executeAIRefinement}
             disabled={isRefining || selectedLines.length === 0 || !improvementInstruction}
             className={`w-full py-4 px-6 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 ${
               (isRefining || selectedLines.length === 0 || !improvementInstruction)
@@ -656,7 +881,22 @@ const ResultsPage: React.FC = () => {
             )}
           </button>
 
-          {validationFeedback && (
+          {validationData && (
+            <div className="relative">
+              <ValidationFeedback validation={validationData} selectedLines={selectedLines} />
+              <button 
+                onClick={dismissValidationAlert}
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                aria-label="Dismiss validation feedback"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {validationFeedback && !validationData && (
             <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg">
               <div className="flex items-start">
                 <svg className="w-5 h-5 text-blue-400 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
