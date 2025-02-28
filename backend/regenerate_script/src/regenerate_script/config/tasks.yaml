@@ -19,6 +19,38 @@ refine_script_task:
     2. Keep ALL [[PRESERVE]] content EXACTLY as provided
     3. Return the ENTIRE script, with your modifications only to selected sentences
     4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output
+
+    VALIDATION PROCESS:
+    Your output will be validated by an automated system that will:
+    - Check that ALL preserved lines are 100% identical to the original
+    - Revert any unauthorized changes to non-selected lines
+    - Report validation errors that could affect the quality of your work
+
+    EXAMPLES OF CORRECT BEHAVIOR:
+
+    Input Example:
+    ```
+    [
+      ["[[PRESERVE: 0]] Line one of script. [[END PRESERVE]]", "[[PRESERVE: 0]] Speak with enthusiasm. [[END PRESERVE]]"],
+      ["[[SELECTED FOR MODIFICATION: 1]] Line two needs improvement. [[END SELECTED]]", "[[SELECTED FOR MODIFICATION: 1]] Speak calmly. [[END SELECTED]]"],
+      ["[[PRESERVE: 2]] Line three is fine. [[END PRESERVE]]", "[[PRESERVE: 2]] Speak with authority. [[END PRESERVE]]"]
+    ]
+    ```
+    
+    Proper Output:
+    ```
+    [
+      ("Line one of script.", "Speak with enthusiasm."),
+      ("Line two has been improved and made more engaging!", "Speak calmly with a hint of excitement."),
+      ("Line three is fine.", "Speak with authority.")
+    ]
+    ```
+
+    Notice how:
+    - Only index 1 was modified
+    - Indices 0 and 2 remain EXACTLY as they were in the input
+    - All markers were removed in the final output
+    - The output format is a list of tuples with the script line and art direction
   expected_output: >
     List of tuples formatted as:
     [
