@@ -59,6 +59,7 @@ const ResultsPage: React.FC = () => {
   const [audioVersions, setAudioVersions] = useState<AudioVersion[]>([]);
   const [audioVersionDescription, setAudioVersionDescription] = useState('');
   const [showAudioVersions, setShowAudioVersions] = useState(false);
+  const [validationFeedback, setValidationFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     // Load the script from localStorage
@@ -158,6 +159,7 @@ const ResultsPage: React.FC = () => {
     }
     setIsRefining(true);
     setError(null);
+    setValidationFeedback(null);
 
     try {
       // Get the original form data from localStorage
@@ -166,7 +168,7 @@ const ResultsPage: React.FC = () => {
       // Convert script to the format expected by the backend
       const currentScript: [string, string][] = script.map(item => [item.line, item.artDirection]);
       
-      const refinedScript = await api.refineScript({
+      const result = await api.refineScript({
         selected_sentences: selectedLines,
         improvement_instruction: improvementInstruction,
         current_script: currentScript,
@@ -175,13 +177,24 @@ const ResultsPage: React.FC = () => {
         ad_length: formData.adLength || ''
       });
 
-      if (refinedScript && refinedScript.length > 0) {
+      if (result && result.script && result.script.length > 0) {
         // Save current version before updating
         saveCurrentVersion(`AI refinement: ${improvementInstruction}`);
         
-        setScript(refinedScript);
+        setScript(result.script);
         // Update localStorage with the refined script
-        localStorage.setItem('generatedScript', JSON.stringify(refinedScript));
+        localStorage.setItem('generatedScript', JSON.stringify(result.script));
+        
+        // Show validation feedback if needed
+        if (result.validation) {
+          const validation = result.validation;
+          if (validation.had_unauthorized_changes) {
+            setValidationFeedback(`Note: Some of your changes affected non-selected lines and were automatically reverted (${validation.reverted_changes.length} affected).`);
+          } else if (validation.had_length_mismatch) {
+            setValidationFeedback(`Note: The refined script had a length mismatch (expected ${validation.original_length}, received ${validation.received_length}) and was adjusted.`);
+          }
+        }
+        
         setSelectedLines([]);
         setImprovementInstruction('');
         setHasUnsavedChanges(false);
@@ -642,6 +655,17 @@ const ResultsPage: React.FC = () => {
               'Refine with AI'
             )}
           </button>
+
+          {validationFeedback && (
+            <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-blue-400 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-blue-300">{validationFeedback}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Voice Settings and Audio Generation */}
