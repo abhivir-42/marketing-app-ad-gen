@@ -383,3 +383,86 @@ async def regenerate_script(request: RefineRequest):
     except Exception as e:
         logging.error(f"Error in regenerate_script endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# Test function for validation mechanism (for development purposes)
+def test_validation():
+    """
+    Test function that simulates various scenarios to verify the validation mechanism works correctly.
+    This is intended for development/debugging only.
+    """
+    # Sample original script
+    original_script = [
+        ("Original line 1", "Original art direction 1"),
+        ("Original line 2", "Original art direction 2"),
+        ("Original line 3", "Original art direction 3"),
+        ("Original line 4", "Original art direction 4"),
+    ]
+    
+    # Test Case 1: Script with only authorized changes
+    print("\n=== Test Case 1: Only authorized changes ===")
+    selected_sentences = [1, 2]  # Indices 1 and 2 are selected
+    generated_output = '''[
+        ("Original line 1", "Original art direction 1"),
+        ("Modified line 2", "Modified art direction 2"),
+        ("Modified line 3", "Modified art direction 3"),
+        ("Original line 4", "Original art direction 4")
+    ]'''
+    
+    result, meta = process_marked_output(generated_output, original_script, selected_sentences)
+    print(f"Selected sentences: {selected_sentences}")
+    print(f"Original script: {original_script}")
+    print(f"Generated script: {result}")
+    print(f"Validation metadata: {json.dumps(meta, indent=2)}")
+    
+    # Test Case 2: Script with unauthorized changes
+    print("\n=== Test Case 2: Unauthorized changes ===")
+    selected_sentences = [1]  # Only index 1 is selected
+    generated_output = '''[
+        ("THIS SHOULD BE REVERTED", "THIS SHOULD ALSO BE REVERTED"),
+        ("Modified line 2", "Modified art direction 2"),
+        ("THIS SHOULD BE REVERTED TOO", "AND THIS"),
+        ("YET ANOTHER UNAUTHORIZED CHANGE", "ANOTHER ONE")
+    ]'''
+    
+    result, meta = process_marked_output(generated_output, original_script, selected_sentences)
+    print(f"Selected sentences: {selected_sentences}")
+    print(f"Original script: {original_script}")
+    print(f"Generated script: {result}")
+    print(f"Validation metadata: {json.dumps(meta, indent=2)}")
+    
+    # Test Case 3: Script with missing lines
+    print("\n=== Test Case 3: Script with missing lines ===")
+    selected_sentences = [2, 3]  # Indices 2 and 3 are selected
+    generated_output = '''[
+        ("Original line 1", "Original art direction 1"),
+        ("Original line 2", "Original art direction 2")
+    ]'''
+    
+    result, meta = process_marked_output(generated_output, original_script, selected_sentences)
+    print(f"Selected sentences: {selected_sentences}")
+    print(f"Original script: {original_script}")
+    print(f"Generated script: {result}")
+    print(f"Validation metadata: {json.dumps(meta, indent=2)}")
+    
+    # Test Case 4: Script with extra lines
+    print("\n=== Test Case 4: Script with extra lines ===")
+    selected_sentences = [0]  # Only index 0 is selected
+    generated_output = '''[
+        ("Modified line 1", "Modified art direction 1"),
+        ("Original line 2", "Original art direction 2"),
+        ("Original line 3", "Original art direction 3"),
+        ("Original line 4", "Original art direction 4"),
+        ("EXTRA LINE THAT SHOULD BE REMOVED", "EXTRA ART DIRECTION")
+    ]'''
+    
+    result, meta = process_marked_output(generated_output, original_script, selected_sentences)
+    print(f"Selected sentences: {selected_sentences}")
+    print(f"Original script: {original_script}")
+    print(f"Generated script: {result}")
+    print(f"Validation metadata: {json.dumps(meta, indent=2)}")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Uncomment the following line to run validation tests
+    # test_validation() 
