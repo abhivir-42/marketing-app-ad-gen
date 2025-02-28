@@ -14,9 +14,12 @@ class ScriptRefinement():
       - tone: The desired tone of the ad (e.g., "Fun", "Professional", "Urgent").
       - ad_length: The duration of the ad (15s, 30s, 60s).
       - current_script: The previously generated script as a list of tuples (script line, art direction).
+        Each sentence will be clearly marked with either [[SELECTED FOR MODIFICATION]] or [[PRESERVE]] tags.
       - selected_sentences: A list of indices indicating which sentences should be refined.
       - improvement_instruction: A description of the change to be applied to the selected sentences
         (e.g., "Add a pun about coffee").
+      - explicit_instruction: Clear directives reinforcing that ONLY selected sentences should be modified
+        and all others must be preserved exactly as provided.
     
     Output:
       - A list of tuples formatted as:
@@ -25,7 +28,8 @@ class ScriptRefinement():
             ("Line 2 text", "Voice direction for line 2"),
             ...
           ]
-      Only the selected sentences are refined based on the improvement_instruction, while the rest remain mostly unchanged.
+      IMPORTANT: Only the sentences marked with [[SELECTED FOR MODIFICATION]] should be modified based on
+      the improvement_instruction. All sentences marked with [[PRESERVE]] MUST remain unchanged.
     """
 
     # Load the YAML configuration files for agents and tasks.
@@ -37,7 +41,8 @@ class ScriptRefinement():
         """
         Define the script refinement agent.
         This agent is responsible for taking the original ad script and applying selective refinements
-        according to the improvement_instruction, while keeping the overall script intact.
+        according to the improvement_instruction, while keeping all non-selected sentences COMPLETELY UNCHANGED.
+        The agent must ONLY modify sentences explicitly marked for modification.
         """
         return Agent(
             config=self.agents_config['refine_script_generator'],

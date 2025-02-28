@@ -25,11 +25,13 @@ def run(inputs: dict):
       - ad_length: The duration of the ad (15s, 30s, 60s).
       - speaker_voice: The voice (Male, Female, or Either).
       - current_script: List of tuples representing the current script and art direction.
+        Each sentence is marked with either [[SELECTED FOR MODIFICATION]] or [[PRESERVE]] tags.
       - selected_sentences: List of indices indicating which sentences to refine.
       - improvement_instruction: A description of how the selected lines should be changed.
+      - explicit_instruction: Specific instructions emphasizing that ONLY selected sentences should be modified.
     
-    This crew will refine only the selected sentences per the improvement_instruction,
-    while keeping the remainder of the script mostly intact.
+    This crew will refine ONLY the selected sentences per the improvement_instruction,
+    while keeping all other sentences COMPLETELY UNCHANGED.
     """
     try:
         ScriptRefinement().crew().kickoff(inputs=inputs)
