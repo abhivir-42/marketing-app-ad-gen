@@ -5,7 +5,7 @@ import os
 import subprocess
 import json
 from pathlib import Path
-from typing import List, Tuple, Literal, Dict, Any
+from typing import List, Tuple, Literal, Dict, Any, Optional
 import logging
 
 app = FastAPI()
@@ -42,9 +42,18 @@ class GenerateScriptResponse(BaseModel):
     success: bool
     script: List[Script]
 
+class ValidationMetadata(BaseModel):
+    had_unauthorized_changes: bool = False
+    reverted_changes: List[Dict[str, Any]] = Field(default_factory=list)
+    had_length_mismatch: bool = False
+    original_length: int = 0
+    received_length: int = 0
+    error: Optional[str] = None
+
 class RefineScriptResponse(BaseModel):
     status: str
     data: List[Script]
+    validation: Optional[ValidationMetadata] = None
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -150,7 +159,7 @@ async def run_crewai_script(inputs: dict) -> List[Dict[str, str]]:
     finally:
         os.chdir(Path(__file__).parent)
 
-async def run_regenerate_script_crew(inputs: dict) -> List[Dict[str, str]]:
+async def run_regenerate_script_crew(inputs: dict) -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
     try:
         # Create enhanced input structure with explicit marking of selected sentences
         enhanced_inputs = inputs.copy()
@@ -213,38 +222,106 @@ The indices that should be modified are: {selected_sentences}
             
         if output_path.exists():
             output_text = output_path.read_text()
-            # Process the output to remove the markers
-            processed_output = process_marked_output(output_text, current_script, selected_sentences)
-            return processed_output
+            # Process the output to remove the markers and enforce constraints
+            processed_output, validation_meta = process_marked_output(output_text, current_script, selected_sentences)
+            return processed_output, validation_meta
         
-        return parse_script_output(result.stdout)
+        # If no output file was created, try to parse from stdout
+        parsed_output, validation_meta = process_marked_output(result.stdout, current_script, selected_sentences)
+        return parsed_output, validation_meta
     except Exception as e:
         logging.error(f"Failed to run regenerate_script crew: {str(e)}")
         raise RuntimeError(f"Failed to run regenerate_script crew: {str(e)}")
 
-def process_marked_output(output_text: str, original_script: List[Tuple[str, str]], selected_sentences: List[int]) -> List[Dict[str, str]]:
+def process_marked_output(output_text: str, original_script: List[Tuple[str, str]], selected_sentences: List[int]) -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
     """
-    Process the output from the crew to remove markers and ensure only selected sentences were modified.
-    Also verifies that only the selected sentences have been modified.
+    Process the output from the crew to:
+    1. Remove markers from the output
+    2. Verify that only selected sentences have been modified
+    3. Revert any unauthorized changes to non-selected sentences
+    
+    This creates a safety mechanism regardless of what the crew returns.
+    
+    Returns:
+        A tuple containing:
+        - The verified script with only authorized changes
+        - Metadata about the validation process (reverted changes, etc.)
     """
+    meta = {
+        "reverted_changes": [],
+        "had_unauthorized_changes": False,
+        "had_length_mismatch": False,
+        "original_length": len(original_script),
+        "received_length": 0
+    }
+    
     try:
         # First, try to parse the output normally
         parsed_script = parse_script_output(output_text)
+        meta["received_length"] = len(parsed_script)
         
-        # If parsing succeeded, remove any markers that might be in the output
+        # Validate script length
+        if len(parsed_script) != len(original_script):
+            meta["had_length_mismatch"] = True
+            logging.warning(f"Script length mismatch: original={len(original_script)}, received={len(parsed_script)}. Adjusting to match original length.")
+            # If the lengths don't match, we'll keep the original script length
+            # Truncate if too long, or extend with original sentences if too short
+            if len(parsed_script) > len(original_script):
+                parsed_script = parsed_script[:len(original_script)]
+            else:
+                for i in range(len(parsed_script), len(original_script)):
+                    parsed_script.append({
+                        "line": original_script[i][0],
+                        "artDirection": original_script[i][1]
+                    })
+        
+        # Remove markers from the generated script
         for item in parsed_script:
-            # Remove selection markers if they exist
             for marker in ["[[SELECTED FOR MODIFICATION: ", "[[PRESERVE: ", "]] ", " [[END SELECTED]]", " [[END PRESERVE]]"]:
                 if "line" in item and isinstance(item["line"], str):
                     item["line"] = item["line"].replace(marker, "")
                 if "artDirection" in item and isinstance(item["artDirection"], str):
                     item["artDirection"] = item["artDirection"].replace(marker, "")
         
-        return parsed_script
+        # Step 2: Verify and enforce that only selected sentences were modified
+        verified_script = []
+        
+        for i, (orig_line, orig_art) in enumerate(original_script):
+            # Get the corresponding generated item
+            gen_item = parsed_script[i] if i < len(parsed_script) else {"line": "", "artDirection": ""}
+            
+            # If this is not a selected sentence, ensure it remains unchanged
+            if i not in selected_sentences:
+                # Check if the line or art direction was modified
+                if gen_item.get("line", "") != orig_line or gen_item.get("artDirection", "") != orig_art:
+                    meta["had_unauthorized_changes"] = True
+                    meta["reverted_changes"].append({
+                        "index": i,
+                        "original": {"line": orig_line, "artDirection": orig_art},
+                        "attempted": {"line": gen_item.get("line", ""), "artDirection": gen_item.get("artDirection", "")}
+                    })
+                    logging.warning(f"Unauthorized change detected for sentence {i}. Reverting to original.")
+                    verified_script.append({
+                        "line": orig_line,
+                        "artDirection": orig_art
+                    })
+                else:
+                    # No changes detected, keep as is
+                    verified_script.append(gen_item)
+            else:
+                # This is a selected sentence, accept the changes
+                verified_script.append(gen_item)
+        
+        if meta["had_unauthorized_changes"]:
+            logging.info(f"Some unauthorized changes were reverted in the generated script: {len(meta['reverted_changes'])} sentences affected.")
+        
+        return verified_script, meta
+        
     except Exception as e:
         logging.error(f"Error processing marked output: {str(e)}")
-        # Fallback to original parsing if there's an issue
-        return parse_script_output(output_text)
+        # Fall back to returning the original script if there's a critical error
+        meta["error"] = str(e)
+        return [{"line": line, "artDirection": art} for line, art in original_script], meta
 
 @app.post("/generate_script", response_model=GenerateScriptResponse)
 async def generate_script(request: ScriptRequest):
@@ -258,8 +335,51 @@ async def generate_script(request: ScriptRequest):
 @app.post("/regenerate_script", response_model=RefineScriptResponse)
 async def regenerate_script(request: RefineRequest):
     try:
-        script_output = await run_regenerate_script_crew(request.dict())
-        return RefineScriptResponse(status="success", data=script_output)
+        logging.info(f"Regenerate script request received for {len(request.selected_sentences)} selected sentences")
+        
+        # Validate the request
+        if not request.selected_sentences:
+            logging.warning("No sentences were selected for refinement")
+            raise HTTPException(
+                status_code=400, 
+                detail="At least one sentence must be selected for refinement"
+            )
+        
+        if not request.improvement_instruction:
+            logging.warning("No improvement instruction was provided")
+            raise HTTPException(
+                status_code=400, 
+                detail="An improvement instruction must be provided"
+            )
+        
+        # Process the request
+        original_script = request.current_script
+        script_output, validation_meta = await run_regenerate_script_crew(request.dict())
+        
+        # Count how many sentences actually changed
+        changed_count = 0
+        for i in request.selected_sentences:
+            if i < len(script_output) and i < len(original_script):
+                orig_line = original_script[i][0]
+                orig_art = original_script[i][1]
+                
+                new_line = script_output[i].get("line", "")
+                new_art = script_output[i].get("artDirection", "")
+                
+                if orig_line != new_line or orig_art != new_art:
+                    changed_count += 1
+        
+        logging.info(f"Script regeneration complete. {changed_count} out of {len(request.selected_sentences)} selected sentences were modified.")
+        
+        # Include validation metadata in the response
+        return RefineScriptResponse(
+            status="success", 
+            data=script_output,
+            validation=ValidationMetadata(**validation_meta)
+        )
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
     except Exception as e:
         logging.error(f"Error in regenerate_script endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
