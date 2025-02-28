@@ -1,14 +1,24 @@
 # config/tasks.yaml
 refine_script_task:
   description: >
-    Refine the following ad script by updating only the selected sentences.
+    Refine the following ad script by updating ONLY the selected sentences.
+    
     Original inputs:
       - Key Selling Points: {key_selling_points}
       - Tone: {tone}
       - Ad Length: {ad_length}
-    Current Script: {current_script}
-    Selected Sentences: {selected_sentences}
+    
+    {explicit_instruction}
+    
+    Current Script (with selection markers): {current_script}
+    Selected Sentences (indices): {selected_sentences}
     Improvement Instruction: {improvement_instruction}
+    
+    RESPONSE GUIDELINES:
+    1. ONLY modify the content inside [[SELECTED FOR MODIFICATION]] markers
+    2. Keep ALL [[PRESERVE]] content EXACTLY as provided
+    3. Return the ENTIRE script, with your modifications only to selected sentences
+    4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output
   expected_output: >
     List of tuples formatted as:
     [
@@ -26,3 +36,4 @@ refine_script_task:
     - current_script
     - selected_sentences
     - improvement_instruction
+    - explicit_instruction
