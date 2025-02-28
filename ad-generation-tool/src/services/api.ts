@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Script } from '@/types';
+import { Script, ValidationMetadata } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -19,6 +19,11 @@ export interface RefineScriptRequest {
   key_selling_points: string;
   tone: string;
   ad_length: number;
+}
+
+export interface RefineScriptResult {
+  script: Script[];
+  validation?: ValidationMetadata;
 }
 
 // Helper function to convert ad length string to number
@@ -52,7 +57,7 @@ const api = {
     }
   },
 
-  refineScript: async (data: Omit<RefineScriptRequest, 'ad_length'> & { ad_length: string }): Promise<Script[]> => {
+  refineScript: async (data: Omit<RefineScriptRequest, 'ad_length'> & { ad_length: string }): Promise<RefineScriptResult> => {
     try {
       // Transform the data to match backend expectations
       const transformedData: RefineScriptRequest = {
@@ -69,15 +74,32 @@ const api = {
       const response = await axios.post(`${API_BASE_URL}/regenerate_script`, transformedData);
       console.log('Received from backend after refinement:', response.data);
       
-      // Transform the response data into the expected format
-      const scripts: Script[] = Array.isArray(response.data.data) 
-        ? response.data.data.map((item: any) => ({
-            line: item.line || item[0],
-            artDirection: item.artDirection || item[1]
-          }))
-        : [];
+      // Get the current script from the request
+      const currentScript: Script[] = transformedData.current_script.map(([line, artDirection]) => ({
+        line,
+        artDirection
+      }));
       
-      return scripts;
+      // Create a new script by applying modifications only to the specified indices
+      const modifiedScript = [...currentScript];
+      
+      // Apply each modification to the respective index
+      if (response.data.modified_indices && response.data.data) {
+        response.data.modified_indices.forEach((index: number, i: number) => {
+          if (index >= 0 && index < modifiedScript.length && i < response.data.data.length) {
+            const modifiedSentence = response.data.data[i];
+            modifiedScript[index] = {
+              line: modifiedSentence.line || modifiedSentence[0],
+              artDirection: modifiedSentence.artDirection || modifiedSentence[1]
+            };
+          }
+        });
+      }
+      
+      return {
+        script: modifiedScript,
+        validation: response.data.validation
+      };
     } catch (error) {
       console.error('Error refining script:', error);
       throw error;
