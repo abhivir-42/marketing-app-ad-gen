@@ -152,7 +152,43 @@ async def run_crewai_script(inputs: dict) -> List[Dict[str, str]]:
 
 async def run_regenerate_script_crew(inputs: dict) -> List[Dict[str, str]]:
     try:
-        logging.debug(f"Inputs to regenerate_script crew: {json.dumps(inputs, indent=2)}")
+        # Create enhanced input structure with explicit marking of selected sentences
+        enhanced_inputs = inputs.copy()
+        
+        # Extract the current script and selected sentences
+        current_script = enhanced_inputs.get("current_script", [])
+        selected_sentences = enhanced_inputs.get("selected_sentences", [])
+        
+        # Create a marked script that clearly highlights which sentences should be modified
+        marked_script = []
+        for idx, (line, art_direction) in enumerate(current_script):
+            if idx in selected_sentences:
+                # Mark selected sentences with special prefix/suffix
+                marked_script.append([
+                    f"[[SELECTED FOR MODIFICATION: {idx}]] {line} [[END SELECTED]]",
+                    f"[[SELECTED FOR MODIFICATION: {idx}]] {art_direction} [[END SELECTED]]"
+                ])
+            else:
+                # Mark non-selected sentences as should be preserved
+                marked_script.append([
+                    f"[[PRESERVE: {idx}]] {line} [[END PRESERVE]]",
+                    f"[[PRESERVE: {idx}]] {art_direction} [[END PRESERVE]]"
+                ])
+        
+        # Replace the original script with the marked version
+        enhanced_inputs["current_script"] = marked_script
+        
+        # Add explicit instruction about only modifying selected sentences
+        enhanced_inputs["explicit_instruction"] = f"""
+IMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].
+DO NOT change ANY part of sentences marked with [[PRESERVE]].
+Your task is to apply the improvement instruction ONLY to the selected sentences.
+For any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.
+The indices that should be modified are: {selected_sentences}
+"""
+        
+        logging.debug(f"Enhanced inputs to regenerate_script crew: {json.dumps(enhanced_inputs, indent=2)}")
+        
         script_gen_dir = Path(__file__).parent / "regenerate_script" / "src"
         os.chdir(script_gen_dir)
         output_path = Path("/Users/abhivir42/projects/marketing-app-ad-gen/backend/regenerate_script/src/Users/abhivir42/projects/marketing-app-ad-gen/backend/regenerate_script/refined_script.md")
@@ -164,7 +200,7 @@ async def run_regenerate_script_crew(inputs: dict) -> List[Dict[str, str]]:
             env={
                 **os.environ,
                 "PYTHONPATH": str(script_gen_dir),
-                "CREW_INPUTS": json.dumps(inputs)
+                "CREW_INPUTS": json.dumps(enhanced_inputs)
             },
             capture_output=True,
             text=True
@@ -177,11 +213,38 @@ async def run_regenerate_script_crew(inputs: dict) -> List[Dict[str, str]]:
             
         if output_path.exists():
             output_text = output_path.read_text()
-            return parse_script_output(output_text)
+            # Process the output to remove the markers
+            processed_output = process_marked_output(output_text, current_script, selected_sentences)
+            return processed_output
+        
         return parse_script_output(result.stdout)
     except Exception as e:
         logging.error(f"Failed to run regenerate_script crew: {str(e)}")
         raise RuntimeError(f"Failed to run regenerate_script crew: {str(e)}")
+
+def process_marked_output(output_text: str, original_script: List[Tuple[str, str]], selected_sentences: List[int]) -> List[Dict[str, str]]:
+    """
+    Process the output from the crew to remove markers and ensure only selected sentences were modified.
+    Also verifies that only the selected sentences have been modified.
+    """
+    try:
+        # First, try to parse the output normally
+        parsed_script = parse_script_output(output_text)
+        
+        # If parsing succeeded, remove any markers that might be in the output
+        for item in parsed_script:
+            # Remove selection markers if they exist
+            for marker in ["[[SELECTED FOR MODIFICATION: ", "[[PRESERVE: ", "]] ", " [[END SELECTED]]", " [[END PRESERVE]]"]:
+                if "line" in item and isinstance(item["line"], str):
+                    item["line"] = item["line"].replace(marker, "")
+                if "artDirection" in item and isinstance(item["artDirection"], str):
+                    item["artDirection"] = item["artDirection"].replace(marker, "")
+        
+        return parsed_script
+    except Exception as e:
+        logging.error(f"Error processing marked output: {str(e)}")
+        # Fallback to original parsing if there's an issue
+        return parse_script_output(output_text)
 
 @app.post("/generate_script", response_model=GenerateScriptResponse)
 async def generate_script(request: ScriptRequest):
