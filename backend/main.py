@@ -52,7 +52,8 @@ class ValidationMetadata(BaseModel):
 
 class RefineScriptResponse(BaseModel):
     status: str
-    data: List[Script]
+    data: List[Script]  # Now will only contain modified sentences
+    modified_indices: List[int]  # Indices of the sentences that were modified
     validation: Optional[ValidationMetadata] = None
 
 # Configure logging
@@ -354,27 +355,32 @@ async def regenerate_script(request: RefineRequest):
         
         # Process the request
         original_script = request.current_script
-        script_output, validation_meta = await run_regenerate_script_crew(request.dict())
+        full_script_output, validation_meta = await run_regenerate_script_crew(request.dict())
         
-        # Count how many sentences actually changed
-        changed_count = 0
+        # Identify which selected sentences were actually modified
+        modified_indices = []
+        modified_sentences = []
+        
         for i in request.selected_sentences:
-            if i < len(script_output) and i < len(original_script):
+            if i < len(full_script_output) and i < len(original_script):
                 orig_line = original_script[i][0]
                 orig_art = original_script[i][1]
                 
-                new_line = script_output[i].get("line", "")
-                new_art = script_output[i].get("artDirection", "")
+                new_line = full_script_output[i].get("line", "")
+                new_art = full_script_output[i].get("artDirection", "")
                 
                 if orig_line != new_line or orig_art != new_art:
-                    changed_count += 1
+                    # This sentence was actually modified
+                    modified_indices.append(i)
+                    modified_sentences.append(full_script_output[i])
         
-        logging.info(f"Script regeneration complete. {changed_count} out of {len(request.selected_sentences)} selected sentences were modified.")
+        logging.info(f"Script regeneration complete. {len(modified_indices)} out of {len(request.selected_sentences)} selected sentences were modified.")
         
-        # Include validation metadata in the response
+        # Return only the modified sentences and their indices
         return RefineScriptResponse(
             status="success", 
-            data=script_output,
+            data=modified_sentences,
+            modified_indices=modified_indices,
             validation=ValidationMetadata(**validation_meta)
         )
     except HTTPException:
