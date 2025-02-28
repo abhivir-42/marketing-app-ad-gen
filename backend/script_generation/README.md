@@ -1,54 +1,102 @@
-# ScriptGeneration Crew
+# Script Generation Module
 
-Welcome to the ScriptGeneration Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
+This module provides AI-powered generation of radio ad scripts and accompanying art direction based on user inputs.
 
-## Installation
+## Key Features
 
-Ensure you have Python >=3.10 <3.13 installed on your system. This project uses [UV](https://docs.astral.sh/uv/) for dependency management and package handling, offering a seamless setup and execution experience.
+- Comprehensive script generation based on product details
+- Tailored to specified audience, tone, and length requirements
+- Includes accompanying art direction for each script line
+- Professional output with natural language flow
 
-First, if you haven't already, install uv:
+## Script Generation Process
 
-```bash
-pip install uv
+The script generation process follows these steps:
+
+1. **Input Collection**: User provides product details, target audience, key selling points, tone preferences, and length requirements.
+
+2. **AI Processing**: The CrewAI system processes these inputs to generate a professional radio ad script with art direction.
+
+3. **Output Formatting**: The system returns a structured script with corresponding art direction for each line.
+
+4. **Quality Assurance**: The script is optimized for the specified length, tone, and coherence.
+
+## Input and Output Format
+
+### Input Format
+
+The input to the generation process includes:
+
+- **product_name**: Name of the product or service
+- **target_audience**: Description of the target audience
+- **key_selling_points**: Key features and benefits
+- **tone**: Desired tone of the ad (e.g., "Fun", "Professional", "Urgent")
+- **ad_length**: Duration in seconds (15, 30, or 60)
+- **speaker_voice**: Preferred voice type (Male, Female, or Either)
+
+Example input:
+```json
+{
+  "product_name": "Eco-Friendly Cleaning Products",
+  "target_audience": "Environmentally conscious consumers",
+  "key_selling_points": "green, sustainable, non-toxic, organic",
+  "tone": "Professional",
+  "ad_length": 30,
+  "speaker_voice": "Either"
+}
 ```
 
-Next, navigate to your project directory and install the dependencies:
+### Expected Output Format
 
-(Optional) Lock the dependencies and install them by using the CLI command:
-```bash
-crewai install
+The expected output is a list of tuples containing script lines and corresponding art direction:
+
 ```
-### Customizing
-
-**Add your `OPENAI_API_KEY` into the `.env` file**
-
-- Modify `src/script_generation/config/agents.yaml` to define your agents
-- Modify `src/script_generation/config/tasks.yaml` to define your tasks
-- Modify `src/script_generation/crew.py` to add your own logic, tools and specific args
-- Modify `src/script_generation/main.py` to add custom inputs for your agents and tasks
-
-## Running the Project
-
-To kickstart your crew of AI agents and begin task execution, run this from the root folder of your project:
-
-```bash
-$ crewai run
+[
+  ("Line one of the script.", "Art direction for line one."),
+  ("Line two of the script.", "Art direction for line two."),
+  ("Line three of the script.", "Art direction for line three."),
+  ...
+]
 ```
 
-This command initializes the script_generation Crew, assembling the agents and assigning them tasks as defined in your configuration.
+## API Response
 
-This example, unmodified, will run the create a `report.md` file with the output of a research on LLMs in the root folder.
+The API returns:
+- **success**: Boolean indicating success
+- **script**: List of script objects with line and art direction
 
-## Understanding Your Crew
+```json
+{
+  "success": true,
+  "script": [
+    {
+      "line": "Are you tired of harsh chemicals in your home?",
+      "artDirection": "Speak with concern and slight frustration"
+    },
+    {
+      "line": "Introducing Eco-Clean, the all-natural cleaning solution.",
+      "artDirection": "Transition to an upbeat, positive tone"
+    },
+    {
+      "line": "Made with organic ingredients, it's safe for your family and the planet.",
+      "artDirection": "Speak warmly and reassuringly"
+    }
+  ]
+}
+```
 
-The script_generation Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
+## Integration with Script Refinement
 
-## Support
+Once a script is generated, it can be selectively refined using the Script Refinement module. The refinement process allows for precise improvements to specific parts of the script while preserving the rest.
 
-For support, questions, or feedback regarding the ScriptGeneration Crew or crewAI.
-- Visit our [documentation](https://docs.crewai.com)
-- Reach out to us through our [GitHub repository](https://github.com/joaomdmoura/crewai)
-- [Join our Discord](https://discord.com/invite/X4JWnZnxPb)
-- [Chat with our docs](https://chatg.pt/DWjSBZn)
+See the [Script Refinement Module](../regenerate_script/README.md) documentation for details on how to refine generated scripts.
 
-Let's create wonders together with the power and simplicity of crewAI.
+## Best Practices
+
+For optimal script generation results:
+
+1. **Be Specific**: Provide detailed information about the product and target audience
+2. **Highlight Key Benefits**: Clearly articulate the unique selling points
+3. **Define Tone Clearly**: Be specific about the desired tone (e.g., "professional but approachable")
+4. **Consider Length**: Adjust the detail level based on the desired ad length
+5. **Review and Refine**: Use the refinement process to perfect specific sections
