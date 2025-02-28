@@ -32,6 +32,29 @@ def run(inputs: dict):
     
     This crew will refine ONLY the selected sentences per the improvement_instruction,
     while keeping all other sentences COMPLETELY UNCHANGED.
+    
+    Validation Process:
+    After the crew generates the refined script, a validation process will:
+    1. Verify that only the specified sentences were modified
+    2. Revert any changes to non-selected sentences
+    3. Report metadata about validation results
+    
+    The validation enforces the following constraints:
+    - Only sentences marked with [[SELECTED FOR MODIFICATION]] can be changed
+    - All sentences marked with [[PRESERVE]] must remain exactly as provided
+    - The script length must match the original script length
+    
+    Example of Expected Output Format:
+    [
+      ("First line of the script", "Speak with enthusiasm"),
+      ("Second line with refinements applied", "Speak softly with increasing intensity"),
+      ("Third line of the script", "Dramatic pause, then continue with authority")
+    ]
+    
+    Note that:
+    - Only the selected sentences will be modified based on the improvement instruction
+    - All markers will be removed from the final output
+    - The system will verify compliance with modification constraints
     """
     try:
         ScriptRefinement().crew().kickoff(inputs=inputs)
