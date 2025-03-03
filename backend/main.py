@@ -133,7 +133,12 @@ async def run_crewai_script(inputs: dict) -> List[Dict[str, str]]:
         
         script_gen_dir = Path(__file__).parent / "script_generation" / "src"
         os.chdir(script_gen_dir)
-        output_path = Path("/Users/abhivir42/projects/marketing-app-ad-gen/backend/script_generation/src/Users/abhivir42/projects/marketing-app-ad-gen/backend/script_generation/radio_script.md")
+        
+        # Use the same temporary directory path as in crew.py
+        import tempfile
+        temp_dir = tempfile.gettempdir()
+        output_path = Path(temp_dir) / 'radio_script.md'
+        
         if output_path.exists():
             output_path.unlink()
         result = subprocess.run(
