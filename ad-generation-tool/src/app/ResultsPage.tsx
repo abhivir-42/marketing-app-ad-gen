@@ -7,7 +7,7 @@ import ErrorMessage from '@/components/ErrorMessage';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ProgressSteps from '@/components/ProgressSteps';
 import BackButton from '@/components/BackButton';
-import { Script, RefineScriptResponse, GenerateAudioResponse, ValidationMetadata } from '@/types';
+import { Script, GenerateAudioResponse, ValidationMetadata } from '@/types';
 import api from '@/services/api';
 
 /**
@@ -107,7 +107,7 @@ const ValidationFeedback: React.FC<ValidationFeedbackProps> = ({ validation, sel
         <div className="mb-2">
           <p className="font-medium">⚠️ Unauthorized changes detected and reverted:</p>
           <p className="text-sm mb-2">
-            The system protected sentences you didn't select for modification.
+            The system protected sentences you didn&apos;t select for modification.
             Only sentences you explicitly select can be changed.
           </p>
           <ul className="ml-6 list-disc">
@@ -721,7 +721,7 @@ const ResultsPage: React.FC = () => {
           <div className="mb-8 border-b border-gray-700 pb-6">
             <h2 className="text-2xl font-semibold mb-3">Your Script</h2>
             <p className="text-gray-400">
-              This is your creative workspace. Select lines to refine, edit manually, or generate audio when you're ready.
+              This is your creative workspace. Select lines to refine, edit manually, or generate audio when you&apos;re ready.
             </p>
           </div>
           <div className="space-y-6">
