@@ -2,6 +2,8 @@ from http.server import BaseHTTPRequestHandler
 import json
 import sys
 import os
+import tempfile
+from pathlib import Path
 
 # Add the backend directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend'))
@@ -27,16 +29,27 @@ class handler(BaseHTTPRequestHandler):
         
         # Process the request using your existing backend logic
         from main import regenerate_script
-        result = regenerate_script(refine_request)
-        
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
-        
-        self.wfile.write(json.dumps(result).encode())
+        try:
+            result = regenerate_script(refine_request)
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+            self.end_headers()
+            
+            self.wfile.write(json.dumps(result).encode())
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+            self.end_headers()
+            
+            error_message = str(e)
+            self.wfile.write(json.dumps({"error": error_message}).encode())
         
     def do_OPTIONS(self):
         self.send_response(200)
