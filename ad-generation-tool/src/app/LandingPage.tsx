@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 // import AudioPlayer from '@/components/AudioPlayer';
 
 // const SAMPLE_AUDIO_FORMATS = {
