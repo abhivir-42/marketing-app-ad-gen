@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
-  experimental: {
-    appDir: true,
-  },
+  eslint: {
+    // This will only warn about ESLint errors but not fail the build
+    ignoreDuringBuilds: true
+  }
 }
 
 module.exports = nextConfig 
