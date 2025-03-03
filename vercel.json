@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd ad-generation-tool && npm install && npm run build",
-  "outputDirectory": "ad-generation-tool/.next",
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": ".next",
   "framework": "nextjs",
   "rewrites": [
     {
@@ -13,5 +13,5 @@
       "runtime": "python3.9"
     }
   },
-  "installCommand": "cd ad-generation-tool && npm install"
+  "installCommand": "npm install"
 } 
