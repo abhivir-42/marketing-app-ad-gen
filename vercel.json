@@ -1,0 +1,18 @@
+{
+  "buildCommand": "cd ad-generation-tool && npm install && npm run build",
+  "outputDirectory": "ad-generation-tool/.next",
+  "framework": "nextjs",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ],
+  "functions": {
+    "api/**/*.py": {
+      "runtime": "python3.9"
+    }
+  },
+  "installCommand": "cd ad-generation-tool && npm install",
+  "rootDirectory": "ad-generation-tool"
+} 
