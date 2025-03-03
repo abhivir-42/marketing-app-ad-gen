@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { productName, targetAudience, keySellingPoints, tone, adLength, adSpeakerVoice } = body;
+    const { productName, targetAudience, keySellingPoints, tone, adSpeakerVoice } = body;
 
     // TODO: Integrate with the actual script_generation crew
     // For now, return mock data
