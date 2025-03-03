@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import ErrorMessage from '@/components/ErrorMessage';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ProgressSteps from '@/components/ProgressSteps';
 import Tooltip from '@/components/Tooltip';
-import { Script } from '@/types';
+// import { Script } from '@/types';
 import api from '@/services/api';
 
 const FORM_DATA_STORAGE_KEY = 'scriptGenerationFormData';
@@ -125,7 +125,6 @@ const ScriptGenerationPage: React.FC = () => {
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [hasExistingScript, setHasExistingScript] = useState(false);
-  const [adSpeakerVoice, setAdSpeakerVoice] = useState<boolean>(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   // Load saved form data on component mount and check for existing script
@@ -217,7 +216,7 @@ const ScriptGenerationPage: React.FC = () => {
     setError(null);
 
     try {
-      const script = await api.generateScript({
+      const script = await api.generateInitialScript({
         product_name: formData.productName,
         target_audience: formData.targetAudience,
         key_selling_points: formData.keySellingPoints,
