@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm install && npm run build",
+  "buildCommand": "npm install --include=dev && npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "rewrites": [
@@ -13,5 +13,9 @@
       "runtime": "python3.9"
     }
   },
-  "installCommand": "npm install"
+  "installCommand": "npm install --include=dev",
+  "env": {
+    "NODE_ENV": "production",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  }
 } 
