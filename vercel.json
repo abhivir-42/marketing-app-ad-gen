@@ -13,6 +13,5 @@
       "runtime": "python3.9"
     }
   },
-  "installCommand": "cd ad-generation-tool && npm install",
-  "rootDirectory": "ad-generation-tool"
+  "installCommand": "cd ad-generation-tool && npm install"
 } 
