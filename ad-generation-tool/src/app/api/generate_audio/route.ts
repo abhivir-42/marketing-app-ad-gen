@@ -3,8 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // Destructure only what we need
-    // const { speed, pitch } = body;
+    const { speed, pitch } = body;
 
     // TODO: Integrate with the actual Parler TTS API
     // For now, return a mock audio URL
