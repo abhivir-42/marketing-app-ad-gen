@@ -32,7 +32,7 @@ const parseAdLengthToSeconds = (adLength: string): number => {
 };
 
 const api = {
-  generateInitialScript: async (data: Omit<GenerateScriptRequest, 'ad_length'> & { ad_length: string }): Promise<Script[]> => {
+  generateScript: async (data: Omit<GenerateScriptRequest, 'ad_length'> & { ad_length: string }): Promise<Script[]> => {
     try {
       const transformedData: GenerateScriptRequest = {
         ...data,
