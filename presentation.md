@@ -29,7 +29,7 @@
 
 This application is a comprehensive tool for generating professional radio ads with AI assistance. It enables users to:
 
-1. Generate customized ad scripts based on product and audience information
+1. Generate customised ad scripts based on product and audience information
 2. Refine scripts with AI assistance using a sophisticated validation system
 3. Add audio direction alongside script content
 4. Convert scripts to audio using text-to-speech technology
@@ -113,7 +113,7 @@ When refining scripts, we needed to ensure:
 - **Only selected sentences are modified**
 - **Unselected sentences remain unchanged**
 - **Script structure is preserved**
-- **Unauthorized changes are detected and reverted**
+- **Unauthorised changes are detected and reverted**
 
 <div align="center">
 
@@ -149,7 +149,7 @@ def process_marked_output(output_text, original_script, selected_sentences):
     # 1. Checks script length matches original
     # 2. Removes any special markers from output
     # 3. Verifies only selected sentences were modified
-    # 4. Reverts unauthorized changes to preserve integrity
+    # 4. Reverts unauthorised changes to preserve integrity
     # 5. Returns validation metadata for frontend feedback
 ```
 
@@ -178,7 +178,7 @@ response.data.modified_indices.forEach((index: number, i: number) => {
                             data.selected_sentences.includes(index); // KEY CHECK
   
   if (!isValidModification && index < modifiedScript.length) {
-    // UNAUTHORIZED CHANGE DETECTED: Log and track for reporting to user
+    // UNAUTHORISED CHANGE DETECTED: Log and track for reporting to user
     frontendValidation.had_unauthorized_changes = true;
     // Track details for user feedback
   }
@@ -221,6 +221,43 @@ const ValidationFeedback: React.FC<ValidationFeedbackProps> = ({ validation, sel
 ```
 
 Key code reference: [`ad-generation-tool/src/app/ResultsPage.tsx` lines 78-149](ad-generation-tool/src/app/ResultsPage.tsx)
+
+### Testing the Validation System
+
+The backend includes a dedicated testing function for the validation mechanism, which is crucial for ensuring script integrity during refinement:
+
+```python
+def test_validation():
+    """
+    Test function that simulates various scenarios to verify the validation mechanism works correctly.
+    This is intended for development/debugging only.
+    """
+    # Runs test cases for:
+    # 1. Scripts with only authorized changes
+    # 2. Scripts with unauthorised changes (which should be reverted)
+    # 3. Scripts with missing lines
+    # 4. Scripts with extra lines
+```
+
+To run the validation tests, you can use either of these methods:
+
+1. **Use the dedicated test runner:**
+   ```bash
+   python backend/run_validation_test.py
+   ```
+
+2.  **Uncomment the test line in main.py:**
+   ```bash
+   # Near the end of backend/main.py, uncomment:
+   # test_validation()
+   
+   # Then run:
+   python backend/main.py
+   ```
+
+These tests are essential to understand and verify the multi-layer validation system that protects script integrity.
+
+Key code reference: [`backend/main.py` lines 393-473](backend/main.py)
 
 ---
 
@@ -412,9 +449,9 @@ The critical validation function ensures script integrity:
 def process_marked_output(output_text, original_script, selected_sentences):
     """
     Validates and processes refinement output to ensure only
-    authorized changes are applied to the script.
+    authorised changes are applied to the script.
     """
-    # Initialize validation metadata
+    # Initialise validation metadata
     meta = {
         "reverted_changes": [],
         "had_unauthorized_changes": False,
@@ -444,7 +481,7 @@ def process_marked_output(output_text, original_script, selected_sentences):
             # If this is not a selected sentence, ensure it remains unchanged
             if i not in selected_sentences:
                 if gen_item.get("line", "") != orig_line or gen_item.get("artDirection", "") != orig_art:
-                    # Unauthorized change detected - revert and track
+                    # Unauthorised change detected - revert and track
                     meta["had_unauthorized_changes"] = True
                     meta["reverted_changes"].append({
                         "index": i,
@@ -518,7 +555,7 @@ The UI clearly indicates which sentences are selected for modification:
 
 ![Validation Feedback](https://mermaid.ink/img/pako:eNp9kk1v2zAMhv8K4dMO3QpvaN0LBgwYkEMPLbCD0ENgC7VFWFIgye2aIP9-tLOhaY_bSXof8hH5kr5JrSRJRGXkSu1YZRtAw9qnKRXnc-Vr9ZRrlRDTt3njwYCB7Eim_vDP3mG4dOdg3ck-gzQ5tPvqw4iDYHIXPxwG-77hr6tPYBa34xkbqQZJBtuaWE3scXzU-hVAVgVlVOetAzQnVbBDhzYl0myqQs5WVW1gVLEWovyOUGO9JQnZyjVkXCaFi9RYhaYB-KNqusoOr2v8TQqFwcBs0QjG2GSyVahljit1A42UCkIy_1_s1T2Xyx1qAz2raaNyDLNDRv_Jt0Wg7Tskb-xP1nLcEOa5nIL8Lk3kIFLpmByOwpE-jKhm_wWfLrIIjXZ1xxn_Jmlh-VDQQqaZ45PROOJNe3c4vrdPK_NTG_jyBQ?type=png)
 
-*Validation feedback component displaying unauthorized changes*
+*Validation feedback component displaying unauthorised changes*
 
 </div>
 
