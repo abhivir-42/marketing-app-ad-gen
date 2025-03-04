@@ -2,8 +2,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from pathlib import Path
-import os
-import tempfile
 
 @CrewBase
 class ScriptGeneration():
@@ -43,9 +41,7 @@ class ScriptGeneration():
 	# https://docs.crewai.com/concepts/tasks#overview-of-a-task
     @task
     def ad_script_task(self) -> Task:
-        # Use a temporary directory that works in both local and serverless environments
-        temp_dir = tempfile.gettempdir()
-        output_path = Path(temp_dir) / 'radio_script.md'
+        output_path = Path(__file__).parent.parent.parent / 'radio_script.md'
         print(f"Expected output path: {output_path}")  # Debugging line
         print("Starting ad script task...")  # Debugging line
         task = Task(

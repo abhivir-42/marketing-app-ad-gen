@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-// import axios from 'axios';
+import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import ErrorMessage from '@/components/ErrorMessage';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ProgressSteps from '@/components/ProgressSteps';
 import Tooltip from '@/components/Tooltip';
-// import { Script } from '@/types';
+import { Script } from '@/types';
 import api from '@/services/api';
 
 const FORM_DATA_STORAGE_KEY = 'scriptGenerationFormData';
@@ -125,6 +125,7 @@ const ScriptGenerationPage: React.FC = () => {
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [hasExistingScript, setHasExistingScript] = useState(false);
+  const [adSpeakerVoice, setAdSpeakerVoice] = useState<boolean>(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   // Load saved form data on component mount and check for existing script
@@ -216,19 +217,7 @@ const ScriptGenerationPage: React.FC = () => {
     setError(null);
 
     try {
-      // The API expects snake_case keys, but we're sending camelCase keys
-      // Let's log what we're actually sending
-      console.log('Form data being sent:', {
-        product_name: formData.productName,
-        target_audience: formData.targetAudience,
-        key_selling_points: formData.keySellingPoints,
-        tone: formData.tone,
-        ad_length: formData.adLength,
-        speaker_voice: formData.adSpeakerVoice
-      });
-      
-      // Use the correct property names that match what the API route expects
-      const script = await api.generateInitialScript({
+      const script = await api.generateScript({
         product_name: formData.productName,
         target_audience: formData.targetAudience,
         key_selling_points: formData.keySellingPoints,
@@ -238,12 +227,10 @@ const ScriptGenerationPage: React.FC = () => {
       });
       
       if (script && script.length > 0) {
-        console.log('Successfully generated script:', script);
         // Store the generated script in localStorage
         localStorage.setItem('generatedScript', JSON.stringify(script));
         router.push('/results');
       } else {
-        console.error('Received empty script array');
         throw new Error('Received empty or invalid script');
       }
     } catch (error) {
