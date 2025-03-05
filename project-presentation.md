@@ -40,6 +40,8 @@ The tool solves common challenges in radio ad creation:
 - **Maintaining creative control** through targeted AI refinements
 - **Ensuring quality** with a multi-layer validation system
 
+#TODO: Screenshot - Add homepage screenshot showing the main interface
+
 ---
 
 ## System Architecture
@@ -50,32 +52,32 @@ The application follows a modern architecture with clear separation of concerns:
 
 ```mermaid
 graph TB
-    subgraph "Frontend (Next.js)"
-        A[Landing Page] --> B[Form Component]
-        B --> C[Results Component]
-        C --> D[Audio Generation]
-        C --> E[Script Refinement]
+    subgraph "Frontend (Next.js Application)"
+        A["Landing Page"] --> B["Form Component"]
+        B --> C["Results Component"]
+        C --> D["Audio Generation"]
+        C --> E["Script Refinement"]
         E --> C
     end
     
-    subgraph "Backend (FastAPI)"
-        F[API Endpoints] --> G[Script Generation]
-        F --> H[Script Refinement]
-        F --> I[Audio Generation]
-        G --> J[CrewAI Integration]
+    subgraph "Backend (FastAPI Server)"
+        F["API Endpoints"] --> G["Script Generation"]
+        F --> H["Script Refinement"]
+        F --> I["Audio Generation"]
+        G --> J["CrewAI Integration"]
         H --> J
-        I --> K[Text-to-Speech Service]
+        I --> K["Text-to-Speech Service"]
     end
     
-    subgraph "AI Services"
-        J --> L[Script Creator Agent]
-        J --> M[Art Director Agent]
-        J --> N[Script Refiner Agent]
+    subgraph "AI Services Layer"
+        J --> L["Script Creator Agent"]
+        J --> M["Art Director Agent"]
+        J --> N["Script Refiner Agent"]
     end
     
-    B --> |API Request| F
-    C --> |Refinement Request| F
-    D --> |Audio Request| F
+    B -->|"API Request"| F
+    C -->|"Refinement Request"| F
+    D -->|"Audio Request"| F
 ```
 
 </div>
@@ -97,6 +99,8 @@ graph TB
   - Script generation agent for creative content
   - Art direction agent for voice guidance
   - Script refinement agent for targeted improvements
+
+#TODO: Screenshot - Add system architecture diagram showing how components interact in the actual application
 
 ---
 
@@ -138,8 +142,8 @@ sequenceDiagram
     participant FE as Frontend (Next.js)
     participant BE as Backend (FastAPI)
     participant CrewAI as CrewAI Framework
-    participant ScriptAgent as Script Creator Agent
-    participant ArtAgent as Art Direction Agent
+    participant ScriptAgent as Script Creator
+    participant ArtAgent as Art Director
 
     User->>FE: Enter product details and audience information
     FE->>BE: POST /generate_script
@@ -156,10 +160,42 @@ sequenceDiagram
 </div>
 
 Key code references:
-- Frontend form submission: `ad-generation-tool/src/app/GenerateForm.tsx`
+- Frontend form submission: `ad-generation-tool/src/app/ScriptGenerationPage.tsx`
 - API request handling: `ad-generation-tool/src/services/api.ts`
 - Backend endpoint: `backend/main.py` → `generate_script()`
 - CrewAI implementation: `backend/script_generation/src/script_generation/crew.py`
+
+Actual backend implementation of the script generation endpoint:
+
+```python
+@app.post("/generate_script", response_model=GenerateScriptResponse)
+async def generate_script(request: ScriptRequest):
+    try:
+        # Prepare inputs for the crew
+        inputs = {
+            "product_name": request.product_name,
+            "target_audience": request.target_audience,
+            "key_selling_points": request.key_selling_points,
+            "tone": request.tone,
+            "ad_length": request.ad_length
+        }
+        
+        # Run the crew to generate the script
+        script_data = await run_crewai_script(inputs)
+        
+        # Convert the script data to the expected response format
+        formatted_script = [
+            Script(line=item["line"], artDirection=item["artDirection"]) 
+            for item in script_data
+        ]
+        
+        return {"success": True, "script": formatted_script}
+    except Exception as e:
+        logging.error(f"Error generating script: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate script: {str(e)}")
+```
+
+#TODO: Screenshot - Add form input page showing product details input form
 
 ### 2. Script Refinement Flow
 
@@ -195,6 +231,55 @@ Key code references:
 - Validation system: `backend/main.py` → `process_marked_output()`
 - Frontend safeguard: `ad-generation-tool/src/services/api.ts` → `refineScript()`
 
+Frontend API implementation for script refinement with validation:
+
+```typescript
+// From ad-generation-tool/src/services/api.ts
+export const refineScript = async (
+  selectedSentences: number[],
+  improvementInstruction: string,
+  currentScript: Script[],
+  formData: FormData
+): Promise<RefineScriptResponse> => {
+  try {
+    // Convert script format for the API
+    const scriptFormatted = currentScript.map(s => [s.line, s.artDirection]);
+    
+    // Prepare the request payload
+    const payload = {
+      selected_sentences: selectedSentences,
+      improvement_instruction: improvementInstruction,
+      current_script: scriptFormatted,
+      key_selling_points: formData.keySellingPoints,
+      tone: formData.tone,
+      ad_length: formData.adLength
+    };
+    
+    // Make the API request
+    const response = await axios.post(`${API_BASE_URL}/regenerate_script`, payload);
+    
+    // Additional frontend validation layer
+    const frontendValidation = validateScriptIntegrity(
+      currentScript,
+      response.data.data,
+      selectedSentences
+    );
+    
+    if (!frontendValidation.isValid) {
+      console.warn('Frontend validation detected integrity issues:', 
+        frontendValidation.validationMetadata);
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error refining script:', error);
+    throw error;
+  }
+};
+```
+
+#TODO: Screenshot - Add script refinement interface showing sentence selection and improvement instructions
+
 ### 3. Audio Generation Flow
 
 <div align="center">
@@ -217,9 +302,11 @@ sequenceDiagram
 </div>
 
 Key code references:
-- Audio request handling: `ad-generation-tool/src/app/AudioGenerationPage.tsx`
+- Audio request handling in ResultsPage component
 - Backend audio endpoint: `backend/main.py` → `generate_audio()`
 - TTS integration: `backend/utils/tts_service.py`
+
+#TODO: Screenshot - Add audio player interface showing the playback controls and waveform visualization
 
 ---
 
@@ -241,15 +328,15 @@ When refining scripts, the system must:
 
 ```mermaid
 flowchart TD
-    A[User Selects Sentences for Refinement] --> B[AI Generates Refinements]
-    B --> C{Backend Validation}
-    C -->|Unauthorised Changes| D[Revert Changes]
-    C -->|Length Mismatch| E[Restore Structure]
-    C -->|Valid Changes| F[Accept Changes]
-    F --> G{Frontend Validation}
-    G -->|All Valid| H[Update UI]
-    G -->|Issues Detected| I[Display Validation Feedback]
-    D --> J[Return Validation Metadata]
+    A["User Selects Sentences for Refinement"] --> B["AI Generates Refinements"]
+    B --> C{"Backend Validation"}
+    C -->|"Unauthorised Changes"| D["Revert Changes"]
+    C -->|"Length Mismatch"| E["Restore Structure"]
+    C -->|"Valid Changes"| F["Accept Changes"]
+    F --> G{"Frontend Validation"}
+    G -->|"All Valid"| H["Update UI"]
+    G -->|"Issues Detected"| I["Display Validation Feedback"]
+    D --> J["Return Validation Metadata"]
     E --> J
     J --> I
 ```
@@ -269,29 +356,89 @@ Located in `backend/main.py`, the `process_marked_output` function handles:
 - Generating detailed validation metadata
 
 ```python
-def process_marked_output(output_text, original_script, selected_sentences):
-    # Initialise validation metadata
-    validation = {
-        "had_unauthorised_changes": False,
+def process_marked_output(output_text: str, original_script: List[Tuple[str, str]], 
+                         selected_sentences: List[int]) -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
+    """
+    Process the output from the crew to:
+    1. Remove markers from the output
+    2. Verify that only selected sentences have been modified
+    3. Revert any unauthorized changes to non-selected sentences
+    
+    This creates a safety mechanism regardless of what the crew returns.
+    """
+    meta = {
         "reverted_changes": [],
+        "had_unauthorized_changes": False,
         "had_length_mismatch": False,
         "original_length": len(original_script),
         "received_length": 0
     }
     
-    # Process output and identify any unauthorised changes
-    # ...implementation details...
-    
-    # If unauthorised changes detected, revert them
-    if unauthorised_change_detected:
-        validation["had_unauthorised_changes"] = True
-        validation["reverted_changes"].append({
-            "index": line_index,
-            "original": original_line,
-            "attempted": modified_line
-        })
+    try:
+        # First, try to parse the output normally
+        parsed_script = parse_script_output(output_text)
+        meta["received_length"] = len(parsed_script)
         
-    return processed_script, validation
+        # Validate script length
+        if len(parsed_script) != len(original_script):
+            meta["had_length_mismatch"] = True
+            logging.warning(f"Script length mismatch: original={len(original_script)}, "
+                           f"received={len(parsed_script)}. Adjusting to match original length.")
+            # If the lengths don't match, we'll keep the original script length
+            if len(parsed_script) > len(original_script):
+                parsed_script = parsed_script[:len(original_script)]
+            else:
+                for i in range(len(parsed_script), len(original_script)):
+                    parsed_script.append({
+                        "line": original_script[i][0],
+                        "artDirection": original_script[i][1]
+                    })
+        
+        # Remove markers from the generated script
+        for item in parsed_script:
+            for marker in ["[[SELECTED FOR MODIFICATION: ", "[[PRESERVE: ", "]] ", 
+                          " [[END SELECTED]]", " [[END PRESERVE]]"]:
+                if "line" in item and isinstance(item["line"], str):
+                    item["line"] = item["line"].replace(marker, "")
+                if "artDirection" in item and isinstance(item["artDirection"], str):
+                    item["artDirection"] = item["artDirection"].replace(marker, "")
+        
+        # Verify and enforce that only selected sentences were modified
+        verified_script = []
+        
+        for i, (orig_line, orig_art) in enumerate(original_script):
+            # Get the corresponding generated item
+            gen_item = parsed_script[i] if i < len(parsed_script) else {"line": "", "artDirection": ""}
+            
+            # If this is not a selected sentence, ensure it remains unchanged
+            if i not in selected_sentences:
+                # Check if the line or art direction was modified
+                if gen_item.get("line", "") != orig_line or gen_item.get("artDirection", "") != orig_art:
+                    meta["had_unauthorized_changes"] = True
+                    meta["reverted_changes"].append({
+                        "index": i,
+                        "original": {"line": orig_line, "artDirection": orig_art},
+                        "attempted": {"line": gen_item.get("line", ""), 
+                                     "artDirection": gen_item.get("artDirection", "")}
+                    })
+                    logging.warning(f"Unauthorized change detected for sentence {i}. Reverting to original.")
+                    verified_script.append({
+                        "line": orig_line,
+                        "artDirection": orig_art
+                    })
+                else:
+                    # No changes detected, keep as is
+                    verified_script.append(gen_item)
+            else:
+                # This is a selected sentence, accept the changes
+                verified_script.append(gen_item)
+        
+        return verified_script, meta
+        
+    except Exception as e:
+        logging.error(f"Error processing marked output: {str(e)}")
+        meta["error"] = str(e)
+        return [], meta
 ```
 
 #### Frontend Safeguard (Secondary)
@@ -308,16 +455,55 @@ const validateScriptIntegrity = (
   modifiedScript: ScriptLine[],
   selectedIndices: number[]
 ): ValidationResult => {
-  // Check for unauthorised modifications
-  // ...implementation details...
+  let unauthorisedChangesDetected = false;
+  let lengthMismatch = false;
+  const revertedChanges: Array<{
+    index: number;
+    original: { line: string; artDirection: string };
+    attempted: { line: string; artDirection: string };
+  }> = [];
+
+  // Check if lengths match
+  if (originalScript.length !== modifiedScript.length) {
+    lengthMismatch = true;
+    console.warn('Script length mismatch detected in frontend validation');
+  }
+
+  // Compare each line to detect unauthorised changes
+  const minLength = Math.min(originalScript.length, modifiedScript.length);
+  
+  for (let i = 0; i < minLength; i++) {
+    // Skip validation for selected indices - these are allowed to change
+    if (selectedIndices.includes(i)) continue;
+    
+    const original = originalScript[i];
+    const modified = modifiedScript[i];
+    
+    // Check if non-selected line was modified
+    if (original.line !== modified.line || original.artDirection !== modified.artDirection) {
+      unauthorisedChangesDetected = true;
+      revertedChanges.push({
+        index: i,
+        original: { line: original.line, artDirection: original.artDirection },
+        attempted: { line: modified.line, artDirection: modified.artDirection }
+      });
+      
+      // Log the detected change
+      console.warn(`Unauthorised change detected at line ${i}`, {
+        original,
+        attempted: modified
+      });
+    }
+  }
   
   return {
-    isValid: !unauthorisedChangesDetected,
+    isValid: !unauthorisedChangesDetected && !lengthMismatch,
     validationMetadata: {
       had_unauthorised_changes: unauthorisedChangesDetected,
       reverted_changes: revertedChanges,
       had_length_mismatch: lengthMismatch,
-      // ...other metadata
+      original_length: originalScript.length,
+      received_length: modifiedScript.length
     }
   };
 };
@@ -330,6 +516,8 @@ The `ValidationFeedback` component in `ResultsPage.tsx` provides clear alerts:
 - Explains any structure issues that were corrected
 - Maintains transparency throughout the refinement process
 
+#TODO: Screenshot - Add validation feedback UI showing alerts about reverted changes
+
 ---
 
 ## AI Integration with CrewAI
@@ -341,20 +529,20 @@ The project leverages CrewAI, an innovative framework for AI agent orchestration
 ```mermaid
 graph TD
     subgraph "CrewAI Framework"
-        A[Crew Manager] --> B[Script Creator Agent]
-        A --> C[Art Director Agent]
-        A --> D[Script Refiner Agent]
-        E[Task Orchestration] --> A
-        F[Agent Communication] --> A
+        A["Crew Manager"] --> B["Script Creator Agent"]
+        A --> C["Art Director Agent"]
+        A --> D["Script Refiner Agent"]
+        E["Task Orchestration"] --> A
+        F["Agent Communication"] --> A
     end
     
     subgraph "Agent Tasks"
-        B --> G[Generate compelling ad copy]
-        C --> H[Create voice/tone direction]
-        D --> I[Refine specific sentences]
+        B --> G["Generate compelling ad copy"]
+        C --> H["Create voice/tone direction"]
+        D --> I["Refine specific sentences"]
     end
     
-    J[Backend API] --> E
+    J["Backend API"] --> E
 ```
 
 </div>
@@ -381,31 +569,99 @@ graph TD
 The CrewAI integration is implemented in `backend/script_generation/src/script_generation/crew.py`:
 
 ```python
-class ScriptGeneration:
-    def __init__(self):
-        # Initialise agents with specific expertise
-        self.script_creator = Agent(
-            role="Radio Script Writer",
-            goal="Create compelling radio ad scripts",
-            backstory="Experienced copywriter with expertise in radio ads",
+@CrewBase
+class ScriptGeneration():
+    """
+    ScriptGeneration crew for generating ad script and art direction 
+    based on new product requirements.
+
+    New inputs:
+    - product_name: The name of the product.
+    - target_audience: The target audience (e.g., "Teens", "Small Business Owners").
+    - key_selling_points: Key selling points of the product.
+    - tone: The desired tone of the ad (e.g., "Fun", "Professional", "Urgent").
+    - ad_length: The duration of the ad (15s, 30s, 60s).
+    """
+
+    # Load the YAML configuration files for agents and tasks.
+    agents_config = 'config/agents.yaml'
+    tasks_config = 'config/tasks.yaml'
+
+    @agent
+    def ad_script_generator(self) -> Agent:
+        return Agent(
+            config=self.agents_config['ad_script_generator'],
             verbose=True
         )
-        
-        self.art_director = Agent(
-            role="Audio Art Director",
-            goal="Provide clear voice direction for radio ads",
-            backstory="Audio expert with background in radio production",
-            verbose=True
+
+    @task
+    def ad_script_task(self) -> Task:
+        output_path = Path(__file__).parent.parent.parent / 'radio_script.md'
+        print(f"Expected output path: {output_path}")
+        print("Starting ad script task...")
+        task = Task(
+            config=self.tasks_config['ad_script_task'],
+            output_file=str(output_path)
         )
-        
-        # Define tasks with specific objectives
-        self.write_script_task = Task(
-            description="Write a compelling radio ad script",
-            expected_output="Complete radio ad script",
-            agent=self.script_creator
+        print("Task created, returning task...")
+        return task
+
+    @crew
+    def crew(self) -> Crew:
+        """
+        Creates the ScriptGeneration crew that sequentially executes the defined task(s).
+        """
+        return Crew(
+            agents=self.agents,  # Automatically created by the @agent decorator.
+            tasks=self.tasks,    # Automatically created by the @task decorator.
+            process=Process.sequential,
+            verbose=True,
         )
-        
-        # ...additional implementation details...
+```
+
+Agent configuration from `agents.yaml`:
+
+```yaml
+# config/agents.yaml
+ad_script_generator:
+  role: >
+    Radio Script & Voice Director
+  goal: >
+    Create a compelling radio ad script with voice direction for each line based on product details.
+  backstory: >
+    As a seasoned radio producer, you specialize in crafting impactful audio advertisements 
+    that pair script lines with specific vocal delivery instructions. Your expertise includes 
+    tone, pacing, and emotional inflection to engage the target audience.
+```
+
+Task configuration from `tasks.yaml`:
+
+```yaml
+# config/tasks.yaml
+ad_script_task:
+  description: >
+    Create a radio ad script with voice direction for the product.
+    Product Name: {product_name}
+    Target Audience: {target_audience}
+    Key Selling Points: {key_selling_points}
+    Tone: {tone}
+    Ad Length: {ad_length}
+  expected_output: >
+    List of tuples formatted as:
+    [
+      ("Line 1 text", "Voice direction for line 1"),
+      ("Line 2 text", "Voice direction for line 2"),
+      ...
+    ]
+  agent: ad_script_generator
+  tools: []
+  context: []
+  inputs:
+    - product_name
+    - target_audience
+    - key_selling_points
+    - tone
+    - ad_length
 ```
 
 ---
@@ -427,11 +683,11 @@ The interface is designed for intuitive workflow and professional results, with 
 ```mermaid
 graph TD
     subgraph "Script Review Interface"
-        A[Script Display] --> B[Sentence Selection]
-        B --> C[Refinement Instructions]
-        C --> D[AI Refinement Request]
-        D --> E[Validation Feedback]
-        E --> F[Updated Script Display]
+        A["Script Display"] --> B["Sentence Selection"]
+        B --> C["Refinement Instructions"]
+        C --> D["AI Refinement Request"]
+        D --> E["Validation Feedback"]
+        E --> F["Updated Script Display"]
     end
 ```
 
@@ -442,6 +698,8 @@ The refinement interface includes:
 - Clear instruction input
 - Visual feedback on modifications
 - Validation alerts when needed
+
+#TODO: Screenshot - Add before/after comparison of script refinement showing highlighting of changes
 
 ### Audio Generation Interface
 
@@ -526,6 +784,8 @@ The refinement interface includes:
 - Restore previous versions
 - Export options for all versions
 
+#TODO: Screenshot - Add version history UI showing comparison between different script versions
+
 ---
 
 ## Future Enhancements
@@ -537,31 +797,30 @@ The application roadmap includes several planned improvements:
    - User-defined style guidelines
    - Brand voice preservation
 
-2. **Advanced Audio Features**
+2. **Integration Capabilities**
+   - Export to production systems
+   - User auth and previous generations storage
+   - Sharing & Team collaboration features
+
+3. **Advanced Audio Features**
    - Background music integration
    - Sound effect suggestions
    - Multi-voice scripts
 
-3. **Expanded Analytics**
+4. **Expanded Analytics**
    - Script effectiveness metrics
    - A/B testing capabilities
    - Audience response predictions
 
-4. **Integration Capabilities**
-   - Export to production systems
-   - DAW (Digital Audio Workstation) compatibility
-   - Team collaboration features
 
-5. **Accessibility Improvements**
-   - Screen reader optimisation
-   - Keyboard navigation enhancements
-   - High-contrast mode
+
+
 
 ---
 
-<div align="center">
-
 ## Ready for Questions & Code Review
+
+<div align="center">
 
 Thank you for reviewing my presentation. I'm ready to discuss:
 - Any specific areas of the implementation
@@ -569,4 +828,4 @@ Thank you for reviewing my presentation. I'm ready to discuss:
 - Code structure and organisation
 - Future development possibilities
 
-</div> 
+</div>
