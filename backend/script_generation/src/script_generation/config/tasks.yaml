@@ -1,17 +1,26 @@
 # config/tasks.yaml
 ad_script_task:
   description: >
-    Create a radio ad script with voice direction for the product.
+    Create a radio ad script with voice direction for the product, optimized for text-to-speech performance.
+    
     Product Name: {product_name}
     Target Audience: {target_audience}
     Key Selling Points: {key_selling_points}
     Tone: {tone}
     Ad Length: {ad_length}
+    
+    TTS Optimization Guidelines:
+    1. Use natural pauses: Add commas, periods, and ellipses (...) to create realistic breathing pauses.
+    2. Create emphasis: Use strategic CAPITALIZATION for key words (e.g., "This is CRUCIAL").
+    3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech.
+    4. Use short sentences: Break down longer sentences into shorter, digestible ones.
+    5. Maintain a conversational tone: Keep language natural and human-like, not robotic.
+    6. Be concise: Don't add unnecessary words, focus on punctuation and formatting.
   expected_output: >
     List of tuples formatted as:
     [
-      ("Line 1 text", "Voice direction for line 1"),
-      ("Line 2 text", "Voice direction for line 2"),
+      ("Line 1 text with proper, natural pauses... and EMPHASIS.", "Voice direction for line 1"),
+      ("Line 2 text with short, digestible sentences.", "Voice direction for line 2"),
       ...
     ]
   agent: ad_script_generator
