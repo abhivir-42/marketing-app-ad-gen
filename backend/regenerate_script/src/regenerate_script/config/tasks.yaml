@@ -1,7 +1,7 @@
 # config/tasks.yaml
 refine_script_task:
   description: >
-    Refine the following ad script by updating ONLY the selected sentences.
+    Refine the following ad script by updating ONLY the selected sentences, optimizing for text-to-speech performance.
     
     Original inputs:
       - Key Selling Points: {key_selling_points}
@@ -14,11 +14,21 @@ refine_script_task:
     Selected Sentences (indices): {selected_sentences}
     Improvement Instruction: {improvement_instruction}
     
+    TEXT-TO-SPEECH OPTIMIZATION RULES:
+    When modifying selected sentences, ensure they are optimized for natural-sounding TTS:
+    1. Use natural pauses: Add commas, periods, and ellipses (...) for realistic breathing pauses
+    2. Create emphasis: Use strategic CAPITALIZATION of key words (e.g., "This is CRUCIAL")
+    3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech
+    4. Use short sentences: Break down longer sentences into shorter, digestible ones
+    5. Maintain a conversational tone: Keep language natural and human-like, not robotic
+    6. Be concise: Don't add unnecessary words, focus on punctuation and formatting
+    
     RESPONSE GUIDELINES:
     1. ONLY modify the content inside [[SELECTED FOR MODIFICATION]] markers
     2. Keep ALL [[PRESERVE]] content EXACTLY as provided
     3. Return the ENTIRE script, with your modifications only to selected sentences
     4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output
+    5. Ensure all modifications follow the TTS optimization rules above
 
     VALIDATION PROCESS:
     Your output will be validated by an automated system that will:
