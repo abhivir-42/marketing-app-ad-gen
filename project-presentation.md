@@ -53,29 +53,29 @@ The application follows a modern architecture with clear separation of concerns:
 ```mermaid
 graph TB
     subgraph "Frontend (Next.js Application)"
-        A["Landing Page"] --> B["Form Component"]
-        B --> C["Results Component"]
-        C --> D["Audio Generation"]
-        C --> E["Script Refinement"]
+        A[["Landing Page"]] --> B[["Form Component"]]
+        B --> C[["Results Component"]]
+        C --> D[["Audio Generation"]]
+        C --> E[["Script Refinement"]]
         E --> C
     end
     
     subgraph "Backend (FastAPI Server)"
-        F["API Endpoints"] --> G["Script Generation"]
-        F --> H["Script Refinement"]
-        F --> I["Audio Generation"]
-        G --> J["CrewAI Integration"]
+        F[["API Endpoints"]] --> G[["Script Generation"]]
+        F --> H[["Script Refinement"]]
+        F --> I[["Audio Generation"]]
+        G --> J[["CrewAI Integration"]]
         H --> J
-        I --> K["Text-to-Speech Service"]
+        I --> K[["Text-to-Speech Service"]]
     end
     
     subgraph "AI Services Layer"
-        J --> L["Script Creator Agent"]
-        J --> M["Art Director Agent"]
-        J --> N["Script Refiner Agent"]
+        J --> L[["Script Creator Agent"]]
+        J --> M[["Art Director Agent"]]
+        J --> N[["Script Refiner Agent"]]
     end
     
-    B -->|"API Request"| F
+    B -->|"Script Gen Request"| F
     C -->|"Refinement Request"| F
     D -->|"Audio Request"| F
 ```
@@ -88,6 +88,7 @@ graph TB
   - User input collection and validation
   - Script review and selective refinement
   - Audio preview and download
+  - ***Note on Results Component & Script Refinement***: The bidirectional arrow between these components indicates the interactive workflow where users can select portions of the script in the Results Component for refinement, and then the refined script is displayed back in the Results Component for review and further editing if needed.
 
 - **Backend**: FastAPI application with Python
   - RESTful API endpoints
@@ -112,12 +113,22 @@ graph TB
 - **TypeScript**: Provides type safety, improving code reliability and developer experience
 - **Tailwind CSS**: Enables rapid UI development with utility-first approach
 - **React Hook Form**: Manages form state and validation efficiently
-- **SWR**: Implements data fetching with caching and revalidation strategies
+  - Minimizes unnecessary re-renders with uncontrolled components
+  - Provides built-in error handling and validation
+  - Offers performant user experience even with complex forms
+- **SWR** (Stale-While-Revalidate): Implements data fetching with caching and revalidation strategies
+  - Provides real-time data updates with optimistic UI changes
+  - Handles caching, revalidation, focus tracking, and refetching on interval
+  - Reduces API calls while maintaining data freshness
 
 ### Backend Stack
 
 - **FastAPI**: Selected for high performance, automatic documentation, and Python compatibility
 - **Pydantic**: Handles data validation and serialisation
+  - Defines strict API request/response models with type enforcement
+  - Automatically validates incoming data against defined schemas
+  - Provides clear error messages for invalid data
+  - Used for all API endpoints to ensure data integrity (e.g., `ScriptRequest`, `GenerateScriptResponse`)
 - **CrewAI**: Orchestrates multiple AI agents working together for complex tasks
 - **Parler TTS**: Provides high-quality text-to-speech conversion
 
@@ -328,20 +339,15 @@ When refining scripts, the system must:
 
 ```mermaid
 flowchart TD
-    A["User Selects\nSentences for\nRefinement"] --> B["AI Generates\nRefinements"]
-    
-    B --> C{{"Backend\nValidation"}}
-    
-    C -->|"Valid\nChanges"| F["Accept\nChanges"]
-    C -->|"Unauthorized\nChanges"| D["Revert\nChanges"]
-    C -->|"Length\nMismatch"| E["Restore\nStructure"]
-    
-    F --> G{{"Frontend\nValidation"}}
-    
-    G -->|"All Valid"| H["Update UI"]
-    G -->|"Issues\nDetected"| I["Display Validation\nFeedback"]
-    
-    D --> J["Return Validation\nMetadata"]
+    A[["User Selects Sentences<br>for Refinement"]] --> B[["AI Generates<br>Refinements"]]
+    B --> C{{"Backend<br>Validation"}}
+    C -->|"Unauthorised<br>Changes"| D[["Revert<br>Changes"]]
+    C -->|"Length<br>Mismatch"| E[["Restore<br>Structure"]]
+    C -->|"Valid<br>Changes"| F[["Accept<br>Changes"]]
+    F --> G{{"Frontend<br>Validation"}}
+    G -->|"All Valid"| H[["Update UI"]]
+    G -->|"Issues<br>Detected"| I[["Display Validation<br>Feedback"]]
+    D --> J[["Return Validation<br>Metadata"]]
     E --> J
     J --> I
 ```
@@ -534,20 +540,20 @@ The project leverages CrewAI, an innovative framework for AI agent orchestration
 ```mermaid
 graph TD
     subgraph "CrewAI Framework"
-        A["Crew\nManager"] --> B["Script Creator\nAgent"]
-        A --> C["Art Director\nAgent"]
-        A --> D["Script Refiner\nAgent"]
-        E["Task\nOrchestration"] --> A
-        F["Agent\nCommunication"] --> A
+        A[["Crew<br>Manager"]] --> B[["Script Creator<br>Agent"]]
+        A --> C[["Art Director<br>Agent"]]
+        A --> D[["Script Refiner<br>Agent"]]
+        E[["Task<br>Orchestration"]] --> A
+        F[["Agent<br>Communication"]] --> A
     end
     
     subgraph "Agent Tasks"
-        B --> G["Generate compelling\nad copy"]
-        C --> H["Create voice/tone\ndirection"]
-        D --> I["Refine specific\nsentences"]
+        B --> G[["Generate compelling<br>ad copy"]]
+        C --> H[["Create voice/tone<br>direction"]]
+        D --> I[["Refine specific<br>sentences"]]
     end
     
-    J["Backend API"] --> E
+    J[["Backend API"]] --> E
 ```
 
 </div>
@@ -688,11 +694,11 @@ The interface is designed for intuitive workflow and professional results, with 
 ```mermaid
 graph TD
     subgraph "Script Review Interface"
-        A["Script\nDisplay"] --> B["Sentence\nSelection"]
-        B --> C["Refinement\nInstructions"]
-        C --> D["AI Refinement\nRequest"]
-        D --> E["Validation\nFeedback"]
-        E --> F["Updated Script\nDisplay"]
+        A[["Script<br>Display"]] --> B[["Sentence<br>Selection"]]
+        B --> C[["Refinement<br>Instructions"]]
+        C --> D[["AI Refinement<br>Request"]]
+        D --> E[["Validation<br>Feedback"]]
+        E --> F[["Updated Script<br>Display"]]
     end
 ```
 
@@ -819,14 +825,14 @@ The application roadmap includes several planned improvements:
 
 ---
 
+<div align="center">
+
 ## Ready for Questions & Code Review
 
-<div align="center">
+</div>
 
 Thank you for reviewing my presentation. I'm ready to discuss:
 - Any specific areas of the implementation
 - Technical decisions and their rationale
 - Code structure and organisation
 - Future development possibilities
-
-</div>

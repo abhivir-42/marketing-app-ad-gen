@@ -47,7 +47,51 @@ This script provides a step-by-step guide for presenting the AI-Powered Radio Ad
        ad_length: int = Field(..., ge=15, le=60)  # Validate length between 15 and 60 seconds
        speaker_voice: Literal["Male", "Female", "Either"]
    ```
-5. Explain: "I've implemented an API-first design with contracts defined by Pydantic models and TypeScript interfaces, ensuring consistency between frontend and backend."
+5. **Explain Pydantic**: "Pydantic is a core component of our backend data validation strategy. It:
+   - Validates all incoming API requests against strict schemas
+   - Automatically converts and validates types
+   - Provides detailed error messages when validation fails
+   - Simplifies our API documentation through FastAPI integration"
+
+6. Open the form in `ad-generation-tool/src/app/ScriptGenerationForm.tsx` and highlight React Hook Form implementation
+   ```typescript
+   const {
+     register,
+     handleSubmit,
+     formState: { errors, isSubmitting },
+   } = useForm<FormData>({
+     defaultValues: {
+       productName: '',
+       targetAudience: '',
+       keySellingPoints: '',
+       tone: 'professional',
+       adLength: 30
+     }
+   });
+   ```
+
+7. **Explain React Hook Form**: "For form management, React Hook Form provides:
+   - Performance optimization through uncontrolled components
+   - Built-in validation with configurable rules
+   - Reduced re-renders compared to state-managed forms
+   - Comprehensive error handling with minimal boilerplate"
+
+8. Open a component using SWR in `ad-generation-tool/src/app/ResultsPage.tsx` or similar
+   ```typescript
+   const { data, error, mutate } = useSWR(
+     scriptId ? `/api/scripts/${scriptId}` : null,
+     fetcher,
+     { refreshInterval: 0, revalidateOnFocus: false }
+   );
+   ```
+
+9. **Explain SWR**: "SWR improves our data fetching strategy by:
+   - Implementing a stale-while-revalidate caching strategy
+   - Managing loading and error states automatically
+   - Providing real-time updates with configurable revalidation
+   - Supporting optimistic UI updates during mutations"
+
+10. Explain: "I've implemented an API-first design with contracts defined by Pydantic models and TypeScript interfaces, ensuring consistency between frontend and backend."
 
 ## Detailed Code Flow (5 minutes)
 
