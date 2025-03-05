@@ -53,26 +53,26 @@ The application follows a modern architecture with clear separation of concerns:
 ```mermaid
 graph TB
     subgraph "Frontend (Next.js Application)"
-        A["Landing Page"] --> B["Form Component"]
-        B --> C["Results Component"]
-        C --> D["Audio Generation"]
-        C --> E["Script Refinement"]
+        A[["Landing Page"]] --> B[["Form Component"]]
+        B --> C[["Results Component"]]
+        C --> D[["Audio Generation"]]
+        C --> E[["Script Refinement"]]
         E --> C
     end
     
     subgraph "Backend (FastAPI Server)"
-        F["API Endpoints"] --> G["Script Generation"]
-        F --> H["Script Refinement"]
-        F --> I["Audio Generation"]
-        G --> J["CrewAI Integration"]
+        F[["API Endpoints"]] --> G[["Script Generation"]]
+        F --> H[["Script Refinement"]]
+        F --> I[["Audio Generation"]]
+        G --> J[["CrewAI Integration"]]
         H --> J
-        I --> K["Text-to-Speech Service"]
+        I --> K[["Text-to-Speech Service"]]
     end
     
     subgraph "AI Services Layer"
-        J --> L["Script Creator Agent"]
-        J --> M["Art Director Agent"]
-        J --> N["Script Refiner Agent"]
+        J --> L[["Script Creator Agent"]]
+        J --> M[["Art Director Agent"]]
+        J --> N[["Script Refiner Agent"]]
     end
     
     B -->|"API Request"| F
@@ -138,12 +138,12 @@ graph TB
 
 ```mermaid
 sequenceDiagram
-    participant User as User
-    participant FE as Frontend (Next.js)
-    participant BE as Backend (FastAPI)
-    participant CrewAI as CrewAI Framework
-    participant ScriptAgent as Script Creator
-    participant ArtAgent as Art Director
+    participant User as "User"
+    participant FE as "Frontend (Next.js)"
+    participant BE as "Backend (FastAPI)"
+    participant CrewAI as "CrewAI Framework"
+    participant ScriptAgent as "Script Creator"
+    participant ArtAgent as "Art Director"
 
     User->>FE: Enter product details and audience information
     FE->>BE: POST /generate_script
@@ -203,12 +203,12 @@ async def generate_script(request: ScriptRequest):
 
 ```mermaid
 sequenceDiagram
-    participant User as User
-    participant FE as Frontend (Next.js)
-    participant BE as Backend (FastAPI)
-    participant Validator as Validation System
-    participant CrewAI as CrewAI Framework
-    participant RefineAgent as Script Refiner Agent
+    participant User as "User"
+    participant FE as "Frontend (Next.js)"
+    participant BE as "Backend (FastAPI)"
+    participant Validator as "Validation System"
+    participant CrewAI as "CrewAI Framework"
+    participant RefineAgent as "Script Refiner"
 
     User->>FE: Select sentences & provide refinement instructions
     FE->>BE: POST /regenerate_script
@@ -286,10 +286,10 @@ export const refineScript = async (
 
 ```mermaid
 sequenceDiagram
-    participant User as User
-    participant FE as Frontend (Next.js)
-    participant BE as Backend (FastAPI)
-    participant TTS as Text-to-Speech Service
+    participant User as "User"
+    participant FE as "Frontend (Next.js)"
+    participant BE as "Backend (FastAPI)"
+    participant TTS as "Text-to-Speech Service"
     
     User->>FE: Request audio generation
     FE->>BE: POST /generate_audio
@@ -328,15 +328,15 @@ When refining scripts, the system must:
 
 ```mermaid
 flowchart TD
-    A["User Selects Sentences for Refinement"] --> B["AI Generates Refinements"]
-    B --> C{"Backend Validation"}
-    C -->|"Unauthorised Changes"| D["Revert Changes"]
-    C -->|"Length Mismatch"| E["Restore Structure"]
-    C -->|"Valid Changes"| F["Accept Changes"]
-    F --> G{"Frontend Validation"}
-    G -->|"All Valid"| H["Update UI"]
-    G -->|"Issues Detected"| I["Display Validation Feedback"]
-    D --> J["Return Validation Metadata"]
+    A[["User Selects Sentences<br>for Refinement"]] --> B[["AI Generates<br>Refinements"]]
+    B --> C{{"Backend<br>Validation"}}
+    C -->|"Unauthorised<br>Changes"| D[["Revert<br>Changes"]]
+    C -->|"Length<br>Mismatch"| E[["Restore<br>Structure"]]
+    C -->|"Valid<br>Changes"| F[["Accept<br>Changes"]]
+    F --> G{{"Frontend<br>Validation"}}
+    G -->|"All Valid"| H[["Update UI"]]
+    G -->|"Issues<br>Detected"| I[["Display Validation<br>Feedback"]]
+    D --> J[["Return Validation<br>Metadata"]]
     E --> J
     J --> I
 ```
@@ -529,20 +529,20 @@ The project leverages CrewAI, an innovative framework for AI agent orchestration
 ```mermaid
 graph TD
     subgraph "CrewAI Framework"
-        A["Crew Manager"] --> B["Script Creator Agent"]
-        A --> C["Art Director Agent"]
-        A --> D["Script Refiner Agent"]
-        E["Task Orchestration"] --> A
-        F["Agent Communication"] --> A
+        A[["Crew<br>Manager"]] --> B[["Script Creator<br>Agent"]]
+        A --> C[["Art Director<br>Agent"]]
+        A --> D[["Script Refiner<br>Agent"]]
+        E[["Task<br>Orchestration"]] --> A
+        F[["Agent<br>Communication"]] --> A
     end
     
     subgraph "Agent Tasks"
-        B --> G["Generate compelling ad copy"]
-        C --> H["Create voice/tone direction"]
-        D --> I["Refine specific sentences"]
+        B --> G[["Generate compelling<br>ad copy"]]
+        C --> H[["Create voice/tone<br>direction"]]
+        D --> I[["Refine specific<br>sentences"]]
     end
     
-    J["Backend API"] --> E
+    J[["Backend API"]] --> E
 ```
 
 </div>
@@ -683,11 +683,11 @@ The interface is designed for intuitive workflow and professional results, with 
 ```mermaid
 graph TD
     subgraph "Script Review Interface"
-        A["Script Display"] --> B["Sentence Selection"]
-        B --> C["Refinement Instructions"]
-        C --> D["AI Refinement Request"]
-        D --> E["Validation Feedback"]
-        E --> F["Updated Script Display"]
+        A[["Script<br>Display"]] --> B[["Sentence<br>Selection"]]
+        B --> C[["Refinement<br>Instructions"]]
+        C --> D[["AI Refinement<br>Request"]]
+        D --> E[["Validation<br>Feedback"]]
+        E --> F[["Updated Script<br>Display"]]
     end
 ```
 
@@ -811,10 +811,6 @@ The application roadmap includes several planned improvements:
    - Script effectiveness metrics
    - A/B testing capabilities
    - Audience response predictions
-
-
-
-
 
 ---
 
