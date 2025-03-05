@@ -58,6 +58,7 @@ interface AudioVersion {
   audioUrl: string;
   speed: number;
   pitch: number;
+  voiceId?: string;
   description: string;
 }
 
@@ -159,8 +160,16 @@ const ResultsPage: React.FC = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [editingLine, setEditingLine] = useState<EditableScriptLine | null>(null);
   // TTS related states
-  const [speed, setSpeed] = useState(1);
-  const [pitch, setPitch] = useState(1);
+  const [speed, setSpeed] = useState(1.0);
+  const [pitch, setPitch] = useState(1.0);
+  const [voiceId, setVoiceId] = useState('21m00Tcm4TlvDq8ikWAM');
+  const [availableVoices, setAvailableVoices] = useState([
+    { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel (Female)' },
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Josh (Male)' },
+    { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi (Female)' },
+    { id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli (Female)' },
+    { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Adam (Male)' }
+  ]);
   const [audioUrl, setAudioUrl] = useState('');
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
@@ -412,6 +421,7 @@ const ResultsPage: React.FC = () => {
       const response = await axios.post<GenerateAudioResponse>('/api/generate_audio', {
         speed,
         pitch,
+        voiceId,
         script,
       });
       
@@ -420,7 +430,7 @@ const ResultsPage: React.FC = () => {
       // Save the audio version
       saveAudioVersion(
         response.data.audioUrl, 
-        `Generated with speed: ${speed.toFixed(1)}, pitch: ${pitch.toFixed(1)}`
+        `Generated with ${availableVoices.find(v => v.id === voiceId)?.name || 'Custom voice'}, speed: ${speed.toFixed(1)}, pitch: ${pitch.toFixed(1)}`
       );
       
       setGenerationProgress(100);
@@ -549,7 +559,8 @@ const ResultsPage: React.FC = () => {
       audioUrl,
       speed,
       pitch,
-      description
+      voiceId,
+      description,
     };
     
     const updatedVersions = [...audioVersions, newVersion];
@@ -1041,6 +1052,24 @@ const ResultsPage: React.FC = () => {
                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
               />
             </div>
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="voice-select" className="block text-sm font-medium text-gray-300 mb-1">
+              Voice
+            </label>
+            <select
+              id="voice-select"
+              value={voiceId}
+              onChange={(e) => setVoiceId(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {availableVoices.map((voice) => (
+                <option key={voice.id} value={voice.id}>
+                  {voice.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {audioError && (
