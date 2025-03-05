@@ -356,17 +356,54 @@ flowchart TD
 
 ### 3. Implementation Details
 
-The validation system is implemented in two layers:
+The validation system is implemented in multiple layers to provide robust defense-in-depth protection:
 
-#### Backend Validation (Primary)
+#### Enhanced Input Structure in `run_regenerate_script_crew`
 
-Located in `backend/main.py`, the `process_marked_output` function handles:
-- Comparing original and modified script lengths
-- Verifying that only selected sentences were modified
-- Reverting unauthorised changes to preserve integrity
-- Generating detailed validation metadata
+The first layer of protection happens in the input preparation stage, where we explicitly mark which sentences are selected for modification and which should be preserved. This provides clear visual cues to the AI model:
 
 ```python
+# From backend/main.py, around line 163
+async def run_regenerate_script_crew(inputs: dict) -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
+    try:
+        selected_sentences = inputs["selected_sentences"]
+        current_script = inputs["current_script"]
+        
+        # Create a marked version of the script with explicit tags
+        marked_script = []
+        for i, (line, art) in enumerate(current_script):
+            if i in selected_sentences:
+                marked_line = f"[[SELECTED FOR MODIFICATION: {line}]] [[END SELECTED]]"
+                marked_art = f"[[SELECTED FOR MODIFICATION: {art}]] [[END SELECTED]]"
+            else:
+                marked_line = f"[[PRESERVE: {line}]] [[END PRESERVE]]"
+                marked_art = f"[[PRESERVE: {art}]] [[END PRESERVE]]"
+            marked_script.append((marked_line, marked_art))
+        
+        # Add explicit instructions about modification boundaries
+        explicit_instruction = """
+        IMPORTANT: Only modify sentences marked with [[SELECTED FOR MODIFICATION]]. 
+        Do NOT change sentences marked with [[PRESERVE]].
+        Maintain the same structure and format for each line.
+        Your output MUST include all the original sentences, with only the selected ones modified.
+        """
+        
+        # Combine user instructions with system instructions
+        crew_inputs = {
+            "script": marked_script,
+            "improvement_instruction": inputs["improvement_instruction"] + "\n\n" + explicit_instruction,
+            # ... other inputs
+        }
+        
+        # ... remaining implementation
+```
+
+#### Backend Validation (Primary Layer)
+
+Located in `backend/main.py`, the `process_marked_output` function implements our most critical validation logic:
+
+```python
+# From backend/main.py, around line 237
 def process_marked_output(output_text: str, original_script: List[Tuple[str, str]], 
                          selected_sentences: List[int]) -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
     """
@@ -386,16 +423,16 @@ def process_marked_output(output_text: str, original_script: List[Tuple[str, str
     }
     
     try:
-        # First, try to parse the output normally
+        # First, parse the AI output
         parsed_script = parse_script_output(output_text)
         meta["received_length"] = len(parsed_script)
         
-        # Validate script length
+        # Validate script length and adjust if necessary
         if len(parsed_script) != len(original_script):
             meta["had_length_mismatch"] = True
             logging.warning(f"Script length mismatch: original={len(original_script)}, "
                            f"received={len(parsed_script)}. Adjusting to match original length.")
-            # If the lengths don't match, we'll keep the original script length
+            # Handle length discrepancies by truncating or extending
             if len(parsed_script) > len(original_script):
                 parsed_script = parsed_script[:len(original_script)]
             else:
@@ -449,83 +486,144 @@ def process_marked_output(output_text: str, original_script: List[Tuple[str, str
     except Exception as e:
         logging.error(f"Error processing marked output: {str(e)}")
         meta["error"] = str(e)
-        return [], meta
+        return [{"line": line, "artDirection": art} for line, art in original_script], meta
 ```
 
-#### Frontend Safeguard (Secondary)
+#### Response Structure Optimization
 
-Implemented in `ad-generation-tool/src/services/api.ts`, this additional layer:
-- Provides a redundant check on the client side
-- Ensures UI accurately reflects validation results
-- Delivers clear feedback to users about any issues
+In the `/regenerate_script` endpoint, we optimize the response to only return modified sentences instead of the full script, reducing payload size and focusing the frontend on the specific changes:
+
+```python
+# From backend/main.py, around line 336
+@app.post("/regenerate_script", response_model=RefineScriptResponse)
+async def regenerate_script(request: RefineRequest):
+    try:
+        # ... validation and processing
+        
+        # Extract only the modified sentences for the response
+        modified_sentences = []
+        modified_indices = []
+        
+        for idx in request.selected_sentences:
+            if idx < len(refined_script):
+                modified_sentences.append(refined_script[idx])
+                modified_indices.append(idx)
+        
+        return RefineScriptResponse(
+            status="success",
+            data=modified_sentences,  # Only return modified sentences
+            modified_indices=modified_indices,  # Include indices of modified sentences
+            validation=validation_metadata  # Include validation metadata
+        )
+        # ... error handling
+```
+
+#### Frontend Safeguard (Secondary Layer)
+
+Implemented in `ad-generation-tool/src/services/api.ts`, the frontend validation provides an additional defensive layer:
 
 ```typescript
-// Frontend validation layer
-const validateScriptIntegrity = (
-  originalScript: ScriptLine[],
-  modifiedScript: ScriptLine[],
-  selectedIndices: number[]
-): ValidationResult => {
-  let unauthorisedChangesDetected = false;
-  let lengthMismatch = false;
-  const revertedChanges: Array<{
-    index: number;
-    original: { line: string; artDirection: string };
-    attempted: { line: string; artDirection: string };
-  }> = [];
-
-  // Check if lengths match
-  if (originalScript.length !== modifiedScript.length) {
-    lengthMismatch = true;
-    console.warn('Script length mismatch detected in frontend validation');
-  }
-
-  // Compare each line to detect unauthorised changes
-  const minLength = Math.min(originalScript.length, modifiedScript.length);
-  
-  for (let i = 0; i < minLength; i++) {
-    // Skip validation for selected indices - these are allowed to change
-    if (selectedIndices.includes(i)) continue;
+// From ad-generation-tool/src/services/api.ts
+refineScriptWithValidation: async (data: RefineScriptRequest): Promise<RefineScriptResult> => {
+  try {
+    // STEP 1: PREPARE REQUEST DATA
+    const transformedData = {
+      // ... transform data for backend
+    };
     
-    const original = originalScript[i];
-    const modified = modifiedScript[i];
+    // STEP 2: SEND REQUEST TO BACKEND
+    const response = await axios.post(`${API_BASE_URL}/regenerate_script`, transformedData);
     
-    // Check if non-selected line was modified
-    if (original.line !== modified.line || original.artDirection !== modified.artDirection) {
-      unauthorisedChangesDetected = true;
-      revertedChanges.push({
-        index: i,
-        original: { line: original.line, artDirection: original.artDirection },
-        attempted: { line: modified.line, artDirection: modified.artDirection }
-      });
-      
-      // Log the detected change
-      console.warn(`Unauthorised change detected at line ${i}`, {
-        original,
-        attempted: modified
+    // STEP 3: PREPARE FOR FRONTEND VALIDATION
+    const currentScript: Script[] = transformedData.current_script.map(([line, artDirection]) => ({
+      line,
+      artDirection
+    }));
+    
+    // Create a new script by applying modifications only to the specified indices
+    const modifiedScript = [...currentScript];
+    
+    // STEP 4: FRONTEND SAFEGUARD - ADDITIONAL VALIDATION LAYER
+    const frontendValidation: ValidationMetadata = {
+      had_unauthorized_changes: false,
+      reverted_changes: [],
+      had_length_mismatch: false,
+      original_length: currentScript.length,
+      received_length: response.data.data ? response.data.data.length : 0
+    };
+    
+    // STEP 5: APPLY MODIFICATIONS WITH FRONTEND VERIFICATION
+    if (response.data.modified_indices && response.data.data) {
+      response.data.modified_indices.forEach((index: number, i: number) => {
+        // Verify the index is valid and was selected for modification
+        const isValidModification = index >= 0 && 
+                                   index < modifiedScript.length && 
+                                   i < response.data.data.length &&
+                                   data.selected_sentences.includes(index); // KEY CHECK
+        
+        if (!isValidModification && index < modifiedScript.length) {
+          // UNAUTHORIZED CHANGE DETECTED
+          frontendValidation.had_unauthorized_changes = true;
+          frontendValidation.reverted_changes.push({
+            index,
+            original: modifiedScript[index],
+            attempted: response.data.data[i]
+          });
+          
+          console.warn(`Frontend safeguard: Prevented unauthorized change to sentence ${index}`);
+        } else if (isValidModification) {
+          // Apply the authorized change
+          modifiedScript[index] = response.data.data[i];
+        }
       });
     }
+    
+    return {
+      script: modifiedScript,
+      validation: frontendValidation
+    };
+  } catch (error) {
+    console.error('Error refining script:', error);
+    throw error;
   }
-  
-  return {
-    isValid: !unauthorisedChangesDetected && !lengthMismatch,
-    validationMetadata: {
-      had_unauthorised_changes: unauthorisedChangesDetected,
-      reverted_changes: revertedChanges,
-      had_length_mismatch: lengthMismatch,
-      original_length: originalScript.length,
-      received_length: modifiedScript.length
-    }
-  };
-};
+}
 ```
 
 ### 4. User Feedback System
 
-The `ValidationFeedback` component in `ResultsPage.tsx` provides clear alerts:
-- Highlights unauthorised changes that were reverted
-- Explains any structure issues that were corrected
-- Maintains transparency throughout the refinement process
+The `ValidationFeedback` component in `ResultsPage.tsx` provides clear alerts to maintain transparency:
+
+```tsx
+// From ad-generation-tool/src/app/ResultsPage.tsx
+{validationFeedback && (validationFeedback.had_unauthorized_changes || validationFeedback.had_length_mismatch) && (
+  <Alert variant="warning" className="mb-4">
+    <AlertTitle>Script Validation Information</AlertTitle>
+    <AlertDescription>
+      {validationFeedback.had_unauthorized_changes && (
+        <p>Some attempted changes to non-selected sentences were prevented 
+           ({validationFeedback.reverted_changes.length} sentences).</p>
+      )}
+      {validationFeedback.had_length_mismatch && (
+        <p>The script length was adjusted to match the original 
+           ({validationFeedback.original_length} sentences).</p>
+      )}
+    </AlertDescription>
+  </Alert>
+)}
+```
+
+### 5. Defense-in-Depth Strategy
+
+Our multi-layer validation system implements a defense-in-depth strategy:
+
+1. **Input Marking**: Explicit visual cues for AI model (backend)
+2. **Explicit Instructions**: Clear directives in prompts (backend)
+3. **Post-processing Validation**: Rigorous comparison and restoration (backend)
+4. **Response Optimization**: Only return modified sentences (backend)
+5. **Client-side Verification**: Independent validation layer (frontend)
+6. **User Transparency**: Clear feedback on validation actions (frontend)
+
+This comprehensive approach ensures data integrity throughout the refinement process, regardless of any unexpected AI behavior.
 
 #TODO: Screenshot - Add validation feedback UI showing alerts about reverted changes
 
