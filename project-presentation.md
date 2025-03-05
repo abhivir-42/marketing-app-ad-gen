@@ -53,26 +53,26 @@ The application follows a modern architecture with clear separation of concerns:
 ```mermaid
 graph TB
     subgraph "Frontend (Next.js Application)"
-        A[["Landing Page"]] --> B[["Form Component"]]
-        B --> C[["Results Component"]]
-        C --> D[["Audio Generation"]]
-        C --> E[["Script Refinement"]]
+        A["Landing Page"] --> B["Form Component"]
+        B --> C["Results Component"]
+        C --> D["Audio Generation"]
+        C --> E["Script Refinement"]
         E --> C
     end
     
     subgraph "Backend (FastAPI Server)"
-        F[["API Endpoints"]] --> G[["Script Generation"]]
-        F --> H[["Script Refinement"]]
-        F --> I[["Audio Generation"]]
-        G --> J[["CrewAI Integration"]]
+        F["API Endpoints"] --> G["Script Generation"]
+        F --> H["Script Refinement"]
+        F --> I["Audio Generation"]
+        G --> J["CrewAI Integration"]
         H --> J
-        I --> K[["Text-to-Speech Service"]]
+        I --> K["Text-to-Speech Service"]
     end
     
     subgraph "AI Services Layer"
-        J --> L[["Script Creator Agent"]]
-        J --> M[["Art Director Agent"]]
-        J --> N[["Script Refiner Agent"]]
+        J --> L["Script Creator Agent"]
+        J --> M["Art Director Agent"]
+        J --> N["Script Refiner Agent"]
     end
     
     B -->|"API Request"| F
@@ -328,15 +328,20 @@ When refining scripts, the system must:
 
 ```mermaid
 flowchart TD
-    A[["User Selects Sentences<br>for Refinement"]] --> B[["AI Generates<br>Refinements"]]
-    B --> C{{"Backend<br>Validation"}}
-    C -->|"Unauthorised<br>Changes"| D[["Revert<br>Changes"]]
-    C -->|"Length<br>Mismatch"| E[["Restore<br>Structure"]]
-    C -->|"Valid<br>Changes"| F[["Accept<br>Changes"]]
-    F --> G{{"Frontend<br>Validation"}}
-    G -->|"All Valid"| H[["Update UI"]]
-    G -->|"Issues<br>Detected"| I[["Display Validation<br>Feedback"]]
-    D --> J[["Return Validation<br>Metadata"]]
+    A["User Selects\nSentences for\nRefinement"] --> B["AI Generates\nRefinements"]
+    
+    B --> C{{"Backend\nValidation"}}
+    
+    C -->|"Valid\nChanges"| F["Accept\nChanges"]
+    C -->|"Unauthorized\nChanges"| D["Revert\nChanges"]
+    C -->|"Length\nMismatch"| E["Restore\nStructure"]
+    
+    F --> G{{"Frontend\nValidation"}}
+    
+    G -->|"All Valid"| H["Update UI"]
+    G -->|"Issues\nDetected"| I["Display Validation\nFeedback"]
+    
+    D --> J["Return Validation\nMetadata"]
     E --> J
     J --> I
 ```
@@ -529,20 +534,20 @@ The project leverages CrewAI, an innovative framework for AI agent orchestration
 ```mermaid
 graph TD
     subgraph "CrewAI Framework"
-        A[["Crew<br>Manager"]] --> B[["Script Creator<br>Agent"]]
-        A --> C[["Art Director<br>Agent"]]
-        A --> D[["Script Refiner<br>Agent"]]
-        E[["Task<br>Orchestration"]] --> A
-        F[["Agent<br>Communication"]] --> A
+        A["Crew\nManager"] --> B["Script Creator\nAgent"]
+        A --> C["Art Director\nAgent"]
+        A --> D["Script Refiner\nAgent"]
+        E["Task\nOrchestration"] --> A
+        F["Agent\nCommunication"] --> A
     end
     
     subgraph "Agent Tasks"
-        B --> G[["Generate compelling<br>ad copy"]]
-        C --> H[["Create voice/tone<br>direction"]]
-        D --> I[["Refine specific<br>sentences"]]
+        B --> G["Generate compelling\nad copy"]
+        C --> H["Create voice/tone\ndirection"]
+        D --> I["Refine specific\nsentences"]
     end
     
-    J[["Backend API"]] --> E
+    J["Backend API"] --> E
 ```
 
 </div>
@@ -683,11 +688,11 @@ The interface is designed for intuitive workflow and professional results, with 
 ```mermaid
 graph TD
     subgraph "Script Review Interface"
-        A[["Script<br>Display"]] --> B[["Sentence<br>Selection"]]
-        B --> C[["Refinement<br>Instructions"]]
-        C --> D[["AI Refinement<br>Request"]]
-        D --> E[["Validation<br>Feedback"]]
-        E --> F[["Updated Script<br>Display"]]
+        A["Script\nDisplay"] --> B["Sentence\nSelection"]
+        B --> C["Refinement\nInstructions"]
+        C --> D["AI Refinement\nRequest"]
+        D --> E["Validation\nFeedback"]
+        E --> F["Updated Script\nDisplay"]
     end
 ```
 
