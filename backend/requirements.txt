@@ -11,4 +11,9 @@ langchain==0.3.18
 langchain-core==0.3.35
 langchain-openai==0.2.14
 langchain-community==0.3.17
-pathlib==1.0.1 
+pathlib==1.0.1
+transformers==4.35.0
+torch==2.1.0
+numpy==1.24.1
+scipy==1.11.3
+soundfile==0.12.1 

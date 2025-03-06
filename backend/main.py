@@ -5,7 +5,7 @@ import os
 import subprocess
 import json
 from pathlib import Path
-from typing import List, Tuple, Literal, Dict, Any, Optional
+from typing import List, Tuple, Literal, Dict, Any, Optional, Union
 import logging
 
 app = FastAPI()
@@ -49,6 +49,15 @@ class ValidationMetadata(BaseModel):
     original_length: int = 0
     received_length: int = 0
     error: Optional[str] = None
+
+class AudioRequest(BaseModel):
+    script: List[Script]
+    speed: float = 1.0
+    pitch: float = 1.0
+    voiceId: Optional[str] = None
+
+class GenerateAudioResponse(BaseModel):
+    audioUrl: str
 
 class RefineScriptResponse(BaseModel):
     status: str
@@ -389,6 +398,32 @@ async def regenerate_script(request: RefineRequest):
     except Exception as e:
         logging.error(f"Error in regenerate_script endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/generate_audio", response_model=GenerateAudioResponse)
+async def generate_audio(request: AudioRequest):
+    """
+    Generate audio from a script using the Parler TTS model.
+    """
+    try:
+        # Import here to avoid circular imports
+        from backend.utils.tts_integration import call_parler_tts_api
+        
+        # Convert our AudioRequest to a format expected by the TTS integration
+        tts_request = {
+            "script": [{"line": script.line, "artDirection": script.artDirection} for script in request.script],
+            "speed": request.speed,
+            "pitch": request.pitch,
+            "voiceId": request.voiceId
+        }
+        
+        # Generate audio from the script
+        audio_url = await call_parler_tts_api(tts_request)
+        
+        # Return the audio URL
+        return GenerateAudioResponse(audioUrl=audio_url)
+    except Exception as e:
+        logging.error(f"Audio generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate audio: {str(e)}")
 
 # Test function for validation mechanism (for development purposes)
 def test_validation():
