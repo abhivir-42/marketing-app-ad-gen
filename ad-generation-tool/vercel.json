@@ -13,7 +13,9 @@
     "NEXT_PUBLIC_API_URL": "/api",
     "BACKEND_URL": "http://172.206.3.68:8000",
     "NEXT_PUBLIC_VERCEL_API_URL": "http://172.206.3.68:8000",
-    "VERCEL": "1"
+    "VERCEL": "1",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://dljrfjawvzmcosdvdxeb.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRsanJmamF3dnptY29zZHZkeGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE1NDQ3MjksImV4cCI6MjA1NzEyMDcyOX0.XMC5ndAOEN0atq8m_wiFhYh8Ng2ZvrYakJa_kVJvxG4"
   },
   "rewrites": [
     {

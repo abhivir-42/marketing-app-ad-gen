@@ -9,6 +9,7 @@ import ProgressSteps from '@/components/ProgressSteps';
 import BackButton from '@/components/BackButton';
 import { Script, RefineScriptResponse, GenerateAudioResponse, ValidationMetadata } from '@/types';
 import api from '@/services/api';
+import { SCRIPT_STORAGE_KEY, SCRIPT_DATA_STORAGE_KEY, SCRIPT_VERSIONS_KEY, AUDIO_VERSIONS_KEY, VALIDATION_DATA_KEY, FORM_DATA_STORAGE_KEY, getItem, setItem, removeItem, safeJsonParse } from '@/services/storage';
 
 /**
  * Radio Ad Script Generation & Refinement Tool
@@ -206,71 +207,83 @@ const ResultsPage: React.FC = () => {
    *    or when a new successful refinement occurs with no validation issues
    */
   useEffect(() => {
-    // Load validation data from localStorage if it exists
-    const savedValidationData = localStorage.getItem('validationData');
-    if (savedValidationData) {
-      try {
-        const parsedData = JSON.parse(savedValidationData);
-        setValidationData(parsedData);
-      } catch (error) {
-        console.error('Error parsing saved validation data:', error);
-        // Clear corrupted data
-        localStorage.removeItem('validationData');
+    const loadValidationData = async () => {
+      // Load validation data from storage if it exists
+      const savedValidationData = await getItem(VALIDATION_DATA_KEY);
+      if (savedValidationData) {
+        try {
+          const parsedData = safeJsonParse(savedValidationData, null);
+          if (parsedData) {
+            setValidationData(parsedData);
+          }
+        } catch (error) {
+          console.error('Error parsing saved validation data:', error);
+          // Clear corrupted data
+          removeItem(VALIDATION_DATA_KEY);
+        }
       }
-    }
+    };
+
+    loadValidationData();
   }, []);
 
   useEffect(() => {
-    // Load the script from localStorage
-    const savedScript = localStorage.getItem('generatedScript');
-    if (!savedScript) {
-      router.push('/script');
-      return;
-    }
-    
-    const parsedScript = JSON.parse(savedScript);
-    setScript(parsedScript);
-    
-    // Load version history if available
-    const savedVersions = localStorage.getItem('scriptVersionHistory');
-    if (savedVersions) {
-      try {
-        // Parse the versions and ensure dates are properly converted back to Date objects
-        const parsedVersions = JSON.parse(savedVersions, (key, value) => {
-          if (key === 'timestamp') return new Date(value);
-          return value;
-        });
-        setVersions(parsedVersions);
-      } catch (error) {
-        console.error('Error loading version history:', error);
+    const loadData = async () => {
+      // Load the script from storage
+      const savedScript = await getItem(SCRIPT_STORAGE_KEY);
+      if (!savedScript) {
+        router.push('/script');
+        return;
       }
-    } else {
-      // Create initial version if this is the first time
-      const initialVersion: ScriptVersion = {
-        id: generateVersionId(),
-        timestamp: new Date(),
-        script: parsedScript,
-        description: 'Initial script generation'
-      };
-      setVersions([initialVersion]);
-      saveVersionHistory([initialVersion]);
-    }
-    
-    // Load audio version history if available
-    const savedAudioVersions = localStorage.getItem('audioVersionHistory');
-    if (savedAudioVersions) {
+
       try {
-        const parsedAudioVersions = JSON.parse(savedAudioVersions, (key, value) => {
-          if (key === 'timestamp') return new Date(value);
-          return value;
-        });
-        setAudioVersions(parsedAudioVersions);
+        const parsedScript = safeJsonParse(savedScript, null);
+        if (parsedScript) {
+          setScript(parsedScript);
+        } else {
+          router.push('/script');
+          return;
+        }
       } catch (error) {
-        console.error('Error loading audio version history:', error);
+        console.error('Error parsing saved script:', error);
+        router.push('/script');
+        return;
       }
-    }
-    
-    setIsLoading(false);
+
+      // Load script version history if available
+      const savedVersions = await getItem(SCRIPT_VERSIONS_KEY);
+      if (savedVersions) {
+        try {
+          const parsedVersions = safeJsonParse(savedVersions, []);
+          // Convert string dates back to Date objects
+          const formattedVersions = parsedVersions.map((version: any) => ({
+            ...version,
+            timestamp: new Date(version.timestamp)
+          }));
+          setVersions(formattedVersions);
+        } catch (error) {
+          console.error('Error parsing script version history:', error);
+        }
+      }
+
+      // Load audio version history if available
+      const savedAudioVersions = await getItem(AUDIO_VERSIONS_KEY);
+      if (savedAudioVersions) {
+        try {
+          const parsedVersions = safeJsonParse(savedAudioVersions, []);
+          // Convert string dates back to Date objects
+          const formattedVersions = parsedVersions.map((version: any) => ({
+            ...version,
+            timestamp: new Date(version.timestamp)
+          }));
+          setAudioVersions(formattedVersions);
+        } catch (error) {
+          console.error('Error parsing audio version history:', error);
+        }
+      }
+    };
+
+    loadData();
   }, [router]);
 
   const generateVersionId = () => {
@@ -278,7 +291,8 @@ const ResultsPage: React.FC = () => {
   };
 
   const saveVersionHistory = (updatedVersions: ScriptVersion[]) => {
-    localStorage.setItem('scriptVersionHistory', JSON.stringify(updatedVersions));
+    setVersions(updatedVersions);
+    setItem(SCRIPT_VERSIONS_KEY, updatedVersions);
   };
 
   const saveScriptVersion = (description: string = 'Manual update') => {
@@ -303,7 +317,7 @@ const ResultsPage: React.FC = () => {
     }
     
     setScript([...version.script]);
-    localStorage.setItem('generatedScript', JSON.stringify(version.script));
+    setItem(SCRIPT_STORAGE_KEY, version.script);
     setHasUnsavedChanges(false);
     setComparingVersion(null);
     
@@ -342,7 +356,7 @@ const ResultsPage: React.FC = () => {
       try {
         // STEP 1: PREPARE REQUEST DATA
         // Retrieve original form data to maintain context for AI
-        const formData = JSON.parse(localStorage.getItem('scriptGenerationFormData') || '{}');
+        const formData = safeJsonParse(await getItem(FORM_DATA_STORAGE_KEY) || '{}', {});
         
         // Format script for API request (convert to tuple format expected by backend)
         const currentScript: [string, string][] = script.map(item => [item.line, item.artDirection]);
@@ -374,7 +388,7 @@ const ResultsPage: React.FC = () => {
           // STEP 4: UPDATE SCRIPT WITH VALIDATED CHANGES
           // The result.script already contains the safely modified content
           setScript(result.script);
-          localStorage.setItem('generatedScript', JSON.stringify(result.script));
+          setItem(SCRIPT_STORAGE_KEY, result.script);
           
           // STEP 5: HANDLE VALIDATION FEEDBACK
           // Process and display validation results to the user
@@ -387,7 +401,7 @@ const ResultsPage: React.FC = () => {
             
             // STEP 6: PERSIST VALIDATION STATE
             // Save validation data to localStorage for persistence across page refreshes
-            localStorage.setItem('validationData', JSON.stringify(result.validation));
+            setItem(VALIDATION_DATA_KEY, result.validation);
             
             // STEP 7: DETERMINE VALIDATION STATUS
             const validation = result.validation;
@@ -397,7 +411,7 @@ const ResultsPage: React.FC = () => {
             } else {
               // Success case - no validation issues found
               setValidationFeedback('Script successfully refined with no validation issues.');
-              localStorage.removeItem('validationData');
+              removeItem(VALIDATION_DATA_KEY);
             }
           }
           
@@ -553,7 +567,7 @@ const ResultsPage: React.FC = () => {
   const toggleEditMode = (index: number) => {
     if (editingLine?.index === index) {
       // Save changes to localStorage when exiting edit mode
-      localStorage.setItem('generatedScript', JSON.stringify(script));
+      setItem(SCRIPT_STORAGE_KEY, script);
       setEditingLine(null);
       setHasUnsavedChanges(false);
       
@@ -601,7 +615,8 @@ const ResultsPage: React.FC = () => {
   };
 
   const saveAudioVersionHistory = (updatedVersions: AudioVersion[]) => {
-    localStorage.setItem('audioVersionHistory', JSON.stringify(updatedVersions));
+    setAudioVersions(updatedVersions);
+    setItem(AUDIO_VERSIONS_KEY, updatedVersions);
   };
   
   const saveAudioVersion = (audioUrl: string, description: string = 'Audio generation') => {
@@ -641,7 +656,7 @@ const ResultsPage: React.FC = () => {
    */
   const dismissValidationAlert = () => {
     setValidationData(null);
-    localStorage.removeItem('validationData');
+    removeItem(VALIDATION_DATA_KEY);
   };
 
   if (isLoading) {

@@ -9,8 +9,8 @@ import ProgressSteps from '@/components/ProgressSteps';
 import Tooltip from '@/components/Tooltip';
 import { Script } from '@/types';
 import api from '@/services/api';
-
-const FORM_DATA_STORAGE_KEY = 'scriptGenerationFormData';
+import { FORM_DATA_STORAGE_KEY, SCRIPT_STORAGE_KEY, SCRIPT_DATA_STORAGE_KEY, getItem, setItem, removeItem, safeJsonParse } from '@/services/storage';
+import isEqual from 'lodash/isEqual';
 
 const initialFormData = {
   productName: '',
@@ -127,26 +127,34 @@ const ScriptGenerationPage: React.FC = () => {
   const [hasExistingScript, setHasExistingScript] = useState(false);
   const [adSpeakerVoice, setAdSpeakerVoice] = useState<boolean>(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const [generating, setGenerating] = useState(false);
 
   // Load saved form data on component mount and check for existing script
   useEffect(() => {
-    const savedFormData = localStorage.getItem(FORM_DATA_STORAGE_KEY);
-    if (savedFormData) {
-      try {
-        const parsedData = JSON.parse(savedFormData);
-        setFormData(parsedData);
-      } catch (error) {
-        console.error('Error parsing saved form data:', error);
-        localStorage.removeItem(FORM_DATA_STORAGE_KEY);
+    const loadData = async () => {
+      // Get saved form data
+      const savedFormData = await getItem(FORM_DATA_STORAGE_KEY);
+      if (savedFormData) {
+        try {
+          const parsedData = safeJsonParse(savedFormData, null);
+          if (parsedData) {
+            setFormData(parsedData);
+          }
+        } catch (error) {
+          console.error('Error parsing saved form data:', error);
+          removeItem(FORM_DATA_STORAGE_KEY);
+        }
       }
-    }
 
-    // Check if there's an existing script in localStorage
-    const existingScript = localStorage.getItem('generatedScript');
-    const scriptData = localStorage.getItem('scriptData');
-    
-    // If either one exists, we can navigate back to results
-    setHasExistingScript(!!(existingScript || scriptData));
+      // Check if there's an existing script
+      const existingScript = await getItem(SCRIPT_STORAGE_KEY);
+      const scriptData = await getItem(SCRIPT_DATA_STORAGE_KEY);
+      
+      // If either one exists, we can navigate back to results
+      setHasExistingScript(!!(existingScript || scriptData));
+    };
+
+    loadData();
   }, []);
 
   const validateForm = () => {
@@ -183,8 +191,9 @@ const ScriptGenerationPage: React.FC = () => {
     const { name, value } = e.target;
     const updatedFormData = { ...formData, [name]: value };
     setFormData(updatedFormData);
+
     // Save to localStorage on each change
-    localStorage.setItem(FORM_DATA_STORAGE_KEY, JSON.stringify(updatedFormData));
+    setItem(FORM_DATA_STORAGE_KEY, updatedFormData);
     // Clear error when user starts typing
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: '' }));
@@ -194,7 +203,7 @@ const ScriptGenerationPage: React.FC = () => {
   const applyTemplate = (templateData: Partial<typeof initialFormData>) => {
     const updatedFormData = { ...formData, ...templateData };
     setFormData(updatedFormData);
-    localStorage.setItem(FORM_DATA_STORAGE_KEY, JSON.stringify(updatedFormData));
+    setItem(FORM_DATA_STORAGE_KEY, updatedFormData);
     setShowTemplates(false);
     // Clear any form errors for fields that were filled by the template
     const updatedErrors = { ...formErrors };
@@ -230,7 +239,7 @@ const ScriptGenerationPage: React.FC = () => {
       console.log('Script generation completed successfully');
       if (script && script.length > 0) {
         // Store the generated script in localStorage
-        localStorage.setItem('generatedScript', JSON.stringify(script));
+        setItem(SCRIPT_STORAGE_KEY, JSON.stringify(script));
         router.push('/results');
       } else {
         throw new Error('Received empty or invalid script');
@@ -263,14 +272,15 @@ const ScriptGenerationPage: React.FC = () => {
     handleSubmit({ preventDefault: () => {} } as React.FormEvent);
   };
 
-  // Add window beforeunload event to warn about unsaved changes
   useEffect(() => {
+    // Add a "beforeunload" event listener to warn users about unsaved changes when navigating away
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      const isDirty = Object.values(formData).some(value => value !== '');
-      if (isDirty) {
+      if (formData && !isEqual(formData, initialFormData) && !generating) {
+        // Standard way of showing a confirmation dialog in most browsers
         e.preventDefault();
-        e.returnValue = '';
-        return '';
+        // Most browsers ignore this message, but it's required to show the confirmation dialog
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return 'You have unsaved changes. Are you sure you want to leave?';
       }
     };
 
@@ -278,7 +288,7 @@ const ScriptGenerationPage: React.FC = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [formData]);
+  }, [formData, generating]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">

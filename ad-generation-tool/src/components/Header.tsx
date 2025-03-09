@@ -3,8 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const FORM_DATA_STORAGE_KEY = 'scriptGenerationFormData';
+import { FORM_DATA_STORAGE_KEY, removeItem } from '@/services/storage';
 
 const Header: React.FC = () => {
   const pathname = usePathname();
@@ -13,7 +12,7 @@ const Header: React.FC = () => {
 
   const handleHomeClick = () => {
     // Clear form data when navigating to home
-    localStorage.removeItem(FORM_DATA_STORAGE_KEY);
+    removeItem(FORM_DATA_STORAGE_KEY);
   };
 
   return (
