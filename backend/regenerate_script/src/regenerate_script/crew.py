@@ -95,12 +95,18 @@ class ScriptRefinement():
         
         The task's output will be carefully processed to maintain the integrity of non-selected content.
         """
-        output_path = Path(__file__).parent.parent.parent / 'refined_script.md'
+        # Create a task for the script refinement
+        print("Creating script refinement task...")
         
-        return Task(
+        # Use an absolute path that will work on the server
+        output_path = Path("/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md")
+        print(f"Expected output path: {output_path}")
+        
+        task = Task(
             config=self.tasks_config['refine_script_task'],
             output_file=str(output_path)
         )
+        return task
 
     @crew
     def crew(self) -> Crew:

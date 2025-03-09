@@ -1,7 +1,36 @@
 import axios from 'axios';
 import { Script, ValidationMetadata } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Determine API URL based on environment
+const getApiBaseUrl = () => {
+  // Check if running on Vercel
+  const isVercel = process.env.VERCEL === '1' || process.env.NEXT_PUBLIC_VERCEL === '1';
+  
+  // Check if we're in the browser (client-side) or Node.js (server-side)
+  const isBrowser = typeof window !== 'undefined';
+  
+  console.log('Environment variables:', {
+    VERCEL: process.env.VERCEL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_VERCEL_API_URL: process.env.NEXT_PUBLIC_VERCEL_API_URL,
+    isBrowser
+  });
+  
+  if (isVercel) {
+    console.log('Using Vercel API URL');
+    // On Vercel deployed frontend, use the VM IP address
+    return process.env.NEXT_PUBLIC_VERCEL_API_URL || 'http://172.206.3.68:8000';
+  } else {
+    console.log('Using local API URL');
+    // For local development or server-side rendering
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+  }
+};
+
+// Set API base URL dynamically
+const API_BASE_URL = getApiBaseUrl();
+
+console.log('Using API base URL:', API_BASE_URL);
 
 export interface GenerateScriptRequest {
   product_name: string;
@@ -89,6 +118,12 @@ const api = {
       // Use the refine_script API route (which proxies to the backend's regenerate_script endpoint)
       const response = await axios.post(`${API_BASE_URL}/refine_script`, transformedData);
       console.log('Received from backend after refinement:', response.data);
+      
+      // Check if the response has the expected structure
+      if (!response.data || !response.data.data || !Array.isArray(response.data.data)) {
+        console.error('Unexpected response format:', response.data);
+        throw new Error('Invalid response format from the server');
+      }
       
       // STEP 3: PREPARE FOR FRONTEND VALIDATION
       // Get the current script from the request for comparison

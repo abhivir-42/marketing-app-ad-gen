@@ -1,7 +1,12 @@
-[  
-  ("Introducing the new TEST PRODUCT... designed for YOU.", "Tone: Confident, moderate pacing, slight emphasis on 'NEW' and 'YOU'."),  
-  ("Experience GREAT features that will TRANSFORM your daily routine.", "Tone: Engaging, slow and clear on 'GREAT' and 'TRANSFORM'."),
-  ("It's TIME to elevate your lifestyle... with innovative solutions.", "Tone: Enthusiastic, slightly faster pacing for 'TIME', and slower for 'innovative solutions'."),
-  ("Don't MISS out on what everyone is talking about!", "Tone: Urgent, quickening pace to generate excitement and emphasize 'MISS'."),  
-  ("Try TEST PRODUCT today... and see the CHANGE for yourself!", "Tone: Inviting, warm, with a slight raise in pitch on 'CHANGE' and 'yourself'.")  
+[
+  ("Introducing ADCRAFT... the AI-Powered Radio Ad Generator!", "Use an excited tone to engage listeners immediately."),
+  ("Say goodbye to the traditional way... of creating ads.", "Switch to a neutral tone, emphasizing the contrast."),
+  ("No more waiting DAYS... or even WEEKS.", "Use a slightly urgent tone for emphasis on time savings."),
+  ("With ADCRAFT, you get HIGH-QUALITY ads... in MINUTES.", "Shift to a proud tone, highlighting the speed and quality."),
+  ("Enjoy an ITERATIVE workflow... for refining scripts and audio.", "Use a professional tone, emphasizing innovation."),
+  ("Customize your voice settings... for the perfect delivery.", "Adopt an engaging tone, inviting listeners to personalize."),
+  ("Compare versions side by side... with EASE.", "Maintain a confident tone, showcasing simplicity and effectiveness."),
+  ("Export seamlessly... to broadcasting-ready audio.", "Emphasize the word 'seamlessly', to convey smoothness."),
+  ("Why spend 200... to 5000 pounds... and DAYS of work?", "Use a frustrated tone for impact, to question the alternative."),
+  ("When you can create stunning ads... in just MINUTES... with ADCRAFT?", "Finish with an uplifting tone, encouraging action.")
 ]
