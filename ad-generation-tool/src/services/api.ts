@@ -39,8 +39,16 @@ const api = {
         ad_length: parseAdLengthToSeconds(data.ad_length)
       };
       console.log('Sending to backend:', transformedData);
+      
+      // Use the API route for script generation
       const response = await axios.post(`${API_BASE_URL}/generate_script`, transformedData);
       console.log('Received from backend:', response.data);
+      
+      // Check if the response has the expected structure
+      if (!response.data || !response.data.script) {
+        console.error('Unexpected response format:', response.data);
+        throw new Error('Invalid response format from the server');
+      }
       
       // Transform the response data into the expected format if necessary
       const scripts: Script[] = Array.isArray(response.data.script) 
@@ -53,6 +61,9 @@ const api = {
       return scripts;
     } catch (error) {
       console.error('Error generating script:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error details:', error.response?.data || error.message);
+      }
       throw error;
     }
   },
@@ -75,7 +86,8 @@ const api = {
       
       // STEP 2: SEND REQUEST TO BACKEND WITH SELECTED SENTENCES
       // The backend will apply its own validation to prevent unauthorized changes
-      const response = await axios.post(`${API_BASE_URL}/regenerate_script`, transformedData);
+      // Use the refine_script API route (which proxies to the backend's regenerate_script endpoint)
+      const response = await axios.post(`${API_BASE_URL}/refine_script`, transformedData);
       console.log('Received from backend after refinement:', response.data);
       
       // STEP 3: PREPARE FOR FRONTEND VALIDATION
@@ -154,6 +166,9 @@ const api = {
       };
     } catch (error) {
       console.error('Error refining script:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error details:', error.response?.data || error.message);
+      }
       throw error;
     }
   }

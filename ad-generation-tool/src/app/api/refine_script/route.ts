@@ -1,26 +1,37 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    const { selectedLines, improvementInstruction, script } = body;
-
-    // TODO: Integrate with the actual regenerate_script crew
-    // For now, return mock refined data
-    const refinedScript = [...script];
-    selectedLines.forEach((index: number) => {
-      refinedScript[index] = {
-        ...refinedScript[index],
-        line: `${refinedScript[index].line} (Refined: ${improvementInstruction})`,
-        artDirection: `${refinedScript[index].artDirection} (Updated based on refinement)`
-      };
+    const body = await request.json();
+    
+    console.log('API route /api/refine_script received request:', body);
+    
+    // Forward the request to the backend's regenerate_script endpoint
+    const backendUrl = process.env.BACKEND_URL || 'http://172.206.3.68';
+    const response = await fetch(`${backendUrl}/regenerate_script`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
     });
-
-    return NextResponse.json({ script: refinedScript });
+    
+    if (!response.ok) {
+      console.error('Backend returned error status:', response.status);
+      return NextResponse.json(
+        { error: `Backend error: ${response.statusText}` },
+        { status: response.status }
+      );
+    }
+    
+    const data = await response.json();
+    console.log('Backend response:', data);
+    
+    return NextResponse.json(data);
   } catch (error) {
-    console.error('Error refining script:', error);
+    console.error('Error in refine_script API route:', error);
     return NextResponse.json(
-      { error: 'Failed to refine script' },
+      { error: 'Internal Server Error', details: (error as Error).message },
       { status: 500 }
     );
   }

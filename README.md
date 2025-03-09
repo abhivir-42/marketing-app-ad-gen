@@ -1,88 +1,82 @@
-# AI-Powered Radio Ad Generation Tool
+# Marketing App Ad Generator
 
-## Overview
-This project is an AI-powered tool for generating professional radio ads. Users can generate an ad script, accompanying art direction, and audio output—all in one place. The tool leverages a FastAPI backend, integrates with a crew AI system for generating and refining ad scripts, and uses a fine-tuned TTS service (Parler TTS) for audio generation.
+A web application for generating and refining radio ad scripts using AI, with an iterative workflow for marketing professionals.
 
-## Backend Setup
+## Features
 
-### Prerequisites
-- Python 3.7+
-- Virtual environment tool (e.g., `venv`)
+- AI-powered script generation based on product details and audience
+- Script refinement with targeted improvements
+- Text-to-speech conversion (coming soon)
+- Version history tracking
+- Comparison of different ad versions
 
-### Installation
-1. Clone the repository:
+## Project Structure
+
+- `ad-generation-tool/`: Next.js frontend application
+- `backend/`: FastAPI backend server
+  - `script_generation/`: Script generation module
+  - `regenerate_script/`: Script refinement module
+
+## Local Development Setup
+
+### Backend
+
+1. Navigate to the backend directory:
    ```bash
-   git clone <repository-url>
    cd backend
    ```
-2. Create and activate a virtual environment:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
+
+2. Ensure you have the required environment variables in `.env`:
    ```
+   CREW_API_KEY=your_key_here
+   OPENAI_API_KEY=your_key_here
+   ```
+
 3. Install dependencies:
    ```bash
-   pip install fastapi uvicorn
+   pip install -r requirements.txt
    ```
 
-### Running the Backend
-Start the FastAPI server using Uvicorn:
-```bash
-uvicorn main:app --reload
-```
+4. Start the backend server:
+   ```bash
+   python -m uvicorn main:app --host 0.0.0.0 --port 8000
+   ```
 
-## Frontend Setup
+### Frontend
 
-### Prerequisites
-- Node.js and npm
-
-### Installation
 1. Navigate to the frontend directory:
    ```bash
-   cd frontend
+   cd ad-generation-tool
    ```
-2. Install dependencies:
+
+2. Create a `.env.local` file with:
+   ```
+   NEXT_PUBLIC_API_URL=http://localhost:8000
+   ```
+
+3. Install dependencies:
    ```bash
    npm install
    ```
 
-### Running the Frontend
-Start the development server:
-```bash
-npm start
-```
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-## Usage Guide
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Navigating the Tool
-- **Landing Page:** Attracts users with an overview, sample ad output, a demo, and testimonials.
-- **Script Generation Page:** Collects user inputs such as product name, target audience, key selling points, tone, ad length, and speaker voice.
-- **Script & Art Direction Results Page:** Displays the generated script, allows inline editing, and provides "Refine with AI" functionality.
-- **TTS Generation & Export Page:** Generates and previews audio, with options to adjust speed/pitch and download.
+## Deployment
 
-### API Documentation
-- **`/generate_script` Endpoint:**
-  - **Method:** POST
-  - **Request Body:** `ScriptRequest`
-  - **Response:** List of tuples (script line, art direction)
+For full deployment instructions, see [instructions/deployment-guide.md](instructions/deployment-guide.md).
 
-- **`/refine_script` Endpoint:**
-  - **Method:** POST
-  - **Request Body:** `RefineRequest`
-  - **Response:** List of tuples (refined script line, art direction)
+### Quick Deployment Overview
 
-- **`/generate_audio` Endpoint:**
-  - **Method:** POST
-  - **Request Body:** `AudioRequest`
-  - **Response:** Audio URL (placeholder)
-
-## Future Work
-- Implement the actual crew calls in the backend.
-- Integrate the Parler TTS API for audio generation.
-- Complete the frontend implementation with a modern UI framework.
-
-## Contributing
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+1. Backend is deployed on a Linux VM with GPU support for TTS processing
+2. Frontend is deployed on Vercel
+3. Next.js API routes proxy requests to the backend
+4. Environment variables are configured on both sides
 
 ## License
-This project is licensed under the MIT License.
+
+[MIT License](LICENSE)
