@@ -129,7 +129,7 @@ const ValidationFeedback: React.FC<ValidationFeedbackProps> = ({ validation, sel
             ))}
           </ul>
           <p className="mt-2 text-sm italic">
-            Note: Only sentences at indices [{selectedLines.join(', ')}] were authorized for modification.
+            Note: Only sentences at indices [{validation.selected_sentences ? validation.selected_sentences.join(', ') : selectedLines.join(', ')}] were authorized for modification.
           </p>
         </div>
       )}
@@ -365,6 +365,9 @@ const ResultsPage: React.FC = () => {
         // STEP 5: HANDLE VALIDATION FEEDBACK
         // Process and display validation results to the user
         if (result.validation) {
+          // Store the selected sentences in the validation data before resetting them
+          result.validation.selected_sentences = [...selectedLines];
+          
           // Store validation data for UI rendering
           setValidationData(result.validation);
           
