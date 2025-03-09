@@ -10,9 +10,14 @@ import logging
 
 app = FastAPI()
 
+# Configure CORS to allow requests from Vercel and localhost
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://ad-craft-app.vercel.app",  # Vercel production app
+        "http://localhost:3000",            # Local frontend development
+        "http://127.0.0.1:3000",            # Alternative local address
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -142,9 +147,16 @@ async def run_crewai_script(inputs: dict) -> List[Dict[str, str]]:
         
         script_gen_dir = Path(__file__).parent / "script_generation" / "src"
         os.chdir(script_gen_dir)
-        output_path = Path("/Users/abhivir42/projects/marketing-app-ad-gen/backend/script_generation/src/Users/abhivir42/projects/marketing-app-ad-gen/backend/script_generation/radio_script.md")
+        
+        # Use relative path instead of hardcoded absolute path
+        output_path = Path(__file__).parent / "script_generation" / "radio_script.md"
         if output_path.exists():
             output_path.unlink()
+            
+        # Print debug information
+        logging.info(f"Script generation output path: {output_path}")
+        logging.info(f"Current working directory: {os.getcwd()}")
+        
         result = subprocess.run(
             ["python", "-m", "script_generation.main"],
             env={
@@ -162,6 +174,10 @@ async def run_crewai_script(inputs: dict) -> List[Dict[str, str]]:
         if output_path.exists():
             output_text = output_path.read_text()
             return parse_script_output(output_text)
+            
+        # Additional debug information if file not found
+        logging.error(f"Output file not found at {output_path}")
+        logging.error(f"Directory contents: {list(Path(__file__).parent.glob('**/*.md'))}")
         raise FileNotFoundError("Script output file not generated")
     except Exception as e:
         logging.error(f"Script generation failed: {str(e)}")
@@ -210,9 +226,15 @@ The indices that should be modified are: {selected_sentences}
         
         script_gen_dir = Path(__file__).parent / "regenerate_script" / "src"
         os.chdir(script_gen_dir)
-        output_path = Path("/Users/abhivir42/projects/marketing-app-ad-gen/backend/regenerate_script/src/Users/abhivir42/projects/marketing-app-ad-gen/backend/regenerate_script/refined_script.md")
+        
+        # Use relative path instead of hardcoded absolute path
+        output_path = Path(__file__).parent / "regenerate_script" / "refined_script.md"
         if output_path.exists():
             output_path.unlink()
+        
+        # Print debug information
+        logging.info(f"Script regeneration output path: {output_path}")
+        logging.info(f"Current working directory: {os.getcwd()}")
         
         result = subprocess.run(
             ["python", "-m", "regenerate_script.main"],
@@ -229,12 +251,16 @@ The indices that should be modified are: {selected_sentences}
         if result.returncode != 0:
             logging.error(f"RegenerateScript Error: {result.stderr}")
             raise RuntimeError(f"RegenerateScript Error: {result.stderr}")
-            
+        
         if output_path.exists():
             output_text = output_path.read_text()
             # Process the output to remove the markers and enforce constraints
             processed_output, validation_meta = process_marked_output(output_text, current_script, selected_sentences)
             return processed_output, validation_meta
+        
+        # Additional debug information if file not found
+        logging.error(f"Output file not found at {output_path}")
+        logging.error(f"Directory contents: {list(Path(__file__).parent.glob('**/*.md'))}")
         
         # If no output file was created, try to parse from stdout
         parsed_output, validation_meta = process_marked_output(result.stdout, current_script, selected_sentences)
@@ -242,6 +268,8 @@ The indices that should be modified are: {selected_sentences}
     except Exception as e:
         logging.error(f"Failed to run regenerate_script crew: {str(e)}")
         raise RuntimeError(f"Failed to run regenerate_script crew: {str(e)}")
+    finally:
+        os.chdir(Path(__file__).parent)
 
 def process_marked_output(output_text: str, original_script: List[Tuple[str, str]], selected_sentences: List[int]) -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
     """

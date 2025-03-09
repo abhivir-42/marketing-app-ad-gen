@@ -1,405 +1,332 @@
 # Deployment Guide for Marketing App Ad Generation Tool
 
-This guide provides detailed instructions for deploying the Marketing App Ad Generation Tool with the frontend on Vercel and the backend on a virtual machine.
-
-## Table of Contents
-1. [Overview](#overview)
-2. [Preparing for Deployment](#preparing-for-deployment)
-3. [Backend Deployment (Virtual Machine)](#backend-deployment-virtual-machine)
-4. [Frontend Deployment (Vercel)](#frontend-deployment-vercel)
-5. [Connecting Frontend and Backend](#connecting-frontend-and-backend)
-6. [Testing the Deployed Application](#testing-the-deployed-application)
-7. [Monitoring and Maintenance](#monitoring-and-maintenance)
-8. [Troubleshooting](#troubleshooting)
-
 ## Overview
 
-Our application consists of two main components:
-- **Frontend**: A Next.js application (in the `ad-generation-tool` directory)
-- **Backend**: A FastAPI application (in the `backend` directory)
-
-In local development, these components communicate directly with each other on localhost. For production deployment, we'll host them separately:
-- Frontend → Deployed on Vercel
-- Backend → Deployed on a virtual machine (e.g., AWS EC2, Google Compute Engine, DigitalOcean Droplet)
-
-## Preparing for Deployment
-
-### 1. Backend Preparation
-
-1. **Create a production-ready backend configuration**:
-   - In the `backend` directory, create or modify a `.env.production` file with appropriate configuration
-   - Ensure there are no hardcoded localhost URLs
-   - Set up proper logging configuration for production
-
-2. **Add a proper CORS configuration**:
-   - Update the CORS middleware in `main.py` to only allow specific origins
-   ```python
-   app.add_middleware(
-       CORSMiddleware,
-       allow_origins=["https://your-vercel-app-url.vercel.app"],  # Replace with your actual Vercel URL
-       allow_credentials=True,
-       allow_methods=["*"],
-       allow_headers=["*"],
-   )
-   ```
-
-3. **Create a `Procfile` or service configuration file**:
-   - For example, a simple `Procfile` might contain:
-   ```
-   web: uvicorn main:app --host 0.0.0.0 --port $PORT
-   ```
-
-### 2. Frontend Preparation
-
-1. **Create production environment files**:
-   - Create `ad-generation-tool/.env.production` with:
-   ```
-   NEXT_PUBLIC_APP_ENV=production
-   NEXT_PUBLIC_API_URL=/api
-   BACKEND_URL=https://your-vm-ip-or-domain.com  # This will be your VM's public IP or domain
-   VERCEL=1
-   ```
-
-2. **Update API service logic**:
-   - Ensure `src/services/api.ts` correctly handles the production environment
-   - Verify conditional logic for API endpoints works in both development and production
-
-## Backend Deployment (Virtual Machine)
-
-### 1. Choose and Set Up a Virtual Machine
-
-1. **Select a provider**:
-   - AWS EC2, Google Cloud Compute Engine, DigitalOcean, Linode, or Azure VM
-   - Recommendation: Start with a small instance (2GB RAM, 1 vCPU) and scale as needed
-
-2. **Set up the VM**:
-   - Create a VM with Ubuntu LTS (e.g., Ubuntu 22.04)
-   - Configure security groups/firewall:
-     - Allow SSH (port 22)
-     - Allow HTTP/HTTPS (ports 80/443)
-     - Allow your application port (e.g., 8000)
-
-3. **Install dependencies**:
-   ```bash
-   sudo apt update
-   sudo apt upgrade -y
-   sudo apt install -y python3-pip python3-dev nginx certbot python3-certbot-nginx
-   sudo apt install -y python3-venv
-   ```
-
-### 2. Deploy the Backend Code
-
-1. **Create a deployment user (optional but recommended)**:
-   ```bash
-   sudo adduser deploy
-   sudo usermod -aG sudo deploy
-   # Switch to this user for deployment tasks
-   su - deploy
-   ```
-
-2. **Clone the repository**:
-   ```bash
-   git clone https://your-repository-url.git
-   cd marketing-app-ad-gen
-   ```
-
-3. **Set up Python environment**:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install -r backend/requirements.txt
-   pip install gunicorn uvicorn
-   ```
-
-### 3. Set Up a Production Server
-
-1. **Create a systemd service**:
-   Create a file at `/etc/systemd/system/adgen-backend.service`:
-   ```
-   [Unit]
-   Description=Ad Generation Backend
-   After=network.target
-
-   [Service]
-   User=deploy
-   Group=deploy
-   WorkingDirectory=/home/deploy/marketing-app-ad-gen/backend
-   Environment="PATH=/home/deploy/marketing-app-ad-gen/venv/bin"
-   ExecStart=/home/deploy/marketing-app-ad-gen/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
-
-   [Install]
-   WantedBy=multi-user.target
-   ```
-
-2. **Set up Nginx as a reverse proxy**:
-   Create a file at `/etc/nginx/sites-available/adgen-backend`:
-   ```
-   server {
-       listen 80;
-       server_name your-vm-ip-or-domain.com;  # Replace with your VM's public IP or domain
-
-       location / {
-           proxy_pass http://localhost:8000;
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-       }
-   }
-   ```
-
-3. **Enable the Nginx configuration**:
-   ```bash
-   sudo ln -s /etc/nginx/sites-available/adgen-backend /etc/nginx/sites-enabled/
-   sudo nginx -t  # Test the configuration
-   sudo systemctl restart nginx
-   ```
-
-4. **Start the backend service**:
-   ```bash
-   sudo systemctl start adgen-backend
-   sudo systemctl enable adgen-backend
-   ```
-
-### 4. Set Up SSL (HTTPS)
-
-1. **Use Certbot to obtain an SSL certificate**:
-   ```bash
-   sudo certbot --nginx -d your-vm-ip-or-domain.com
-   ```
-   - Follow the prompts to complete the setup
-
-2. **Verify HTTPS is working**:
-   - Visit `https://your-vm-ip-or-domain.com` in your browser
-
-## Frontend Deployment (Vercel)
-
-### 1. Prepare Your Project for Vercel
-
-1. **Create a `vercel.json` file** in the project root:
-   ```json
-   {
-     "buildCommand": "cd ad-generation-tool && npm install --include=dev && npm run build",
-     "outputDirectory": "ad-generation-tool/.next",
-     "framework": "nextjs",
-     "rewrites": [
-       {
-         "source": "/api/:path*",
-         "destination": "https://your-vm-ip-or-domain.com/:path*"
-       }
-     ],
-     "env": {
-       "NODE_ENV": "production",
-       "NEXT_TELEMETRY_DISABLED": "1"
-     }
-   }
-   ```
-
-2. **Ensure your package.json has the correct scripts**:
-   Verify your `ad-generation-tool/package.json` has:
-   ```json
-   "scripts": {
-     "dev": "next dev",
-     "build": "next build",
-     "start": "next start"
-   }
-   ```
-
-### 2. Deploy to Vercel
-
-1. **Install Vercel CLI** (optional but helpful):
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Deploy via Vercel Dashboard**:
-   - Create an account on Vercel if you don't have one
-   - Import your GitHub repository
-   - Configure the project:
-     - Root Directory: `ad-generation-tool`
-     - Build Command: `npm run build`
-     - Output Directory: `.next`
-
-3. **Set Environment Variables**:
-   In the Vercel dashboard, add these environment variables:
-   - `NEXT_PUBLIC_APP_ENV`: `production`
-   - `NEXT_PUBLIC_API_URL`: `/api`
-   - `BACKEND_URL`: `https://your-vm-ip-or-domain.com`
-   - `VERCEL`: `1`
-
-4. **Deploy the Project**:
-   - Click "Deploy" in the Vercel dashboard
-   - Vercel will automatically build and deploy your frontend
-
-## Connecting Frontend and Backend
-
-### 1. Configure API Routing
-
-1. **Verify the API service setup**:
-   Ensure your API service in `ad-generation-tool/src/services/api.ts` properly handles production vs. development environments:
-   ```typescript
-   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-   // For Next.js API routes when in production (Vercel)
-   const NEXTJS_API_BASE_URL = '/api';
-
-   // Determine if we're running on Vercel or locally
-   const isVercel = process.env.VERCEL === '1';
-   const BASE_URL = isVercel ? NEXTJS_API_BASE_URL : API_BASE_URL;
-   ```
-
-2. **Update rewrites in Next.js**:
-   Ensure your `next.config.js` correctly handles the production environment:
-   ```javascript
-   async rewrites() {
-     // Only apply rewrites in production mode
-     if (process.env.NODE_ENV === 'production') {
-       return [
-         {
-           source: '/api/:path*',
-           destination: process.env.BACKEND_URL + '/:path*'
-         }
-       ];
-     }
-     return [];
-   }
-   ```
-
-### 2. Update CORS on Backend
-
-1. **Add your deployed Vercel URL to the allowed origins**:
-   ```python
-   app.add_middleware(
-       CORSMiddleware,
-       allow_origins=["https://your-vercel-app-url.vercel.app"],
-       allow_credentials=True,
-       allow_methods=["*"],
-       allow_headers=["*"],
-   )
-   ```
-
-2. **Restart your backend service**:
-   ```bash
-   sudo systemctl restart adgen-backend
-   ```
-
-## Testing the Deployed Application
-
-### 1. Frontend Testing
-
-1. **Basic functionality**:
-   - Visit your Vercel URL (e.g., `https://your-app.vercel.app`)
-   - Verify the landing page loads correctly
-   - Check that all components render properly
-
-2. **API integration**:
-   - Try generating a script
-   - Verify the request is correctly sent to the backend
-   - Check that responses are properly handled
-
-### 2. Backend Testing
-
-1. **Direct API testing**:
-   - Use tools like Postman or curl to test your backend endpoints directly
-   - Example: `curl https://your-vm-ip-or-domain.com/generate_script -X POST -H "Content-Type: application/json" -d '{"product_name":"Test Product",...}'`
-
-2. **Verify logs**:
-   ```bash
-   sudo journalctl -u adgen-backend -f
-   ```
-
-### 3. End-to-End Testing
-
-1. **Complete a full script generation flow**:
-   - Start from the landing page
-   - Fill out the form
-   - Submit and generate a script
-   - Refine the generated script
-
-2. **Error handling**:
-   - Test with invalid inputs
-   - Verify error messages are displayed correctly
-
-## Monitoring and Maintenance
-
-### 1. Backend Monitoring
-
-1. **Set up basic monitoring**:
-   ```bash
-   sudo apt install -y prometheus node-exporter
-   ```
-
-2. **Configure log rotation**:
-   Add a configuration for your service logs in `/etc/logrotate.d/adgen-backend`
-
-3. **Regular updates**:
-   ```bash
-   # Regular system updates
-   sudo apt update && sudo apt upgrade -y
-   
-   # Application updates
-   cd /home/deploy/marketing-app-ad-gen
-   git pull
-   source venv/bin/activate
-   pip install -r backend/requirements.txt
-   sudo systemctl restart adgen-backend
-   ```
-
-### 2. Frontend Monitoring
-
-1. **Use Vercel Analytics** or integrate a service like Google Analytics
-
-2. **Set up error reporting**:
-   - Consider adding Sentry.io integration
-   - Add to your Next.js app:
-   ```javascript
-   // pages/_app.js
-   import * as Sentry from '@sentry/nextjs';
-   
-   Sentry.init({
-     dsn: "your-sentry-dsn",
-     tracesSampleRate: 1.0,
-   });
-   ```
-
-## Troubleshooting
-
-### Backend Issues
-
-1. **Service not starting**:
-   ```bash
-   sudo systemctl status adgen-backend
-   sudo journalctl -u adgen-backend -n 50
-   ```
-
-2. **Cannot connect to backend**:
-   - Check firewall settings: `sudo ufw status`
-   - Verify Nginx configuration: `sudo nginx -t`
-   - Check Nginx error logs: `sudo cat /var/log/nginx/error.log`
-
-### Frontend Issues
-
-1. **Build failures**:
-   - Check Vercel build logs in the dashboard
-   - Verify environment variables are set correctly
-
-2. **API connection issues**:
-   - Use browser developer tools to check network requests
-   - Verify the API URL is correct in your environment settings
-
-### CORS Issues
-
-1. **CORS errors in browser console**:
-   - Verify the CORS configuration in your backend
-   - Check that the origin URL matches exactly (including protocol and www subdomain if used)
+This guide provides instructions for deploying the Marketing App Ad Generation Tool with:
+- **Frontend**: Deployed on Vercel (https://ad-craft-app.vercel.app)
+- **Backend**: Deployed on a Linux VM with T4 GPU (IP: 172.206.3.68)
+
+## Current Status
+
+- The backend is configured to run as a systemd service on the Linux VM
+- The frontend is deployed on Vercel
+- CORS is configured to allow requests from the Vercel frontend
+- Nginx is set up as a reverse proxy for the backend
+- Next.js API routes proxy requests from frontend to backend to avoid mixed content issues
+
+## Environment Configuration
+
+### API Keys
+Both script generation and refinement modules use the same keys:
+- `CREW_API_KEY`: Used for CrewAI operations
+- `OPENAI_API_KEY`: Used for OpenAI API operations
+
+These keys are stored in `.env` files in the following locations:
+- `/home/azureuser/marketing-app-ad-gen/backend/.env`
+- `/home/azureuser/marketing-app-ad-gen/backend/script_generation/.env`
+- `/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/.env`
+
+### Frontend-Backend Communication
+- Frontend uses Next.js API routes at `/api/generate_script` and `/api/regenerate_script`
+- These API routes proxy requests to the backend server
+- Environment variables:
+  - `NEXT_PUBLIC_API_URL=/api` - Points frontend to the local API routes
+  - `BACKEND_URL=http://172.206.3.68` - Used by API routes to forward requests to the backend
+
+## Deployment Steps
+
+### 1. Backend Deployment
+
+#### Set up environment variables
+
+1. Ensure all required environment variables are in the main `.env` file:
+
+```bash
+# Create or update the main .env file in the backend directory
+cd /home/azureuser/marketing-app-ad-gen/backend
+cp script_generation/.env .
+```
+
+#### Configure and start the backend server
+
+1. Create a systemd service file for the backend:
+
+```bash
+# Create a systemd service file
+sudo nano /etc/systemd/system/adgen-backend.service
+```
+
+Add the following content:
+
+```
+[Unit]
+Description=Ad Generation Backend Service
+After=network.target
+
+[Service]
+User=azureuser
+WorkingDirectory=/home/azureuser/marketing-app-ad-gen/backend
+Environment="PATH=/home/azureuser/.conda/envs/segp-env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/home/azureuser/.conda/envs/segp-env/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+2. Enable and start the service:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable adgen-backend
+sudo systemctl start adgen-backend
+```
+
+3. Configure CORS in the backend's `main.py`:
+
+```python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://ad-craft-app.vercel.app",  # Vercel production app
+        "http://localhost:3000",            # Local frontend development
+        "http://127.0.0.1:3000",            # Alternative local address
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+4. Set up Nginx as a reverse proxy:
+
+```bash
+# Install Nginx
+sudo apt-get update
+sudo apt-get install -y nginx
+
+# Create Nginx configuration
+sudo nano /etc/nginx/sites-available/adgen-backend
+```
+
+Add this configuration:
+
+```
+server {
+    listen 80;
+    server_name 172.206.3.68;
+
+    location / {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # CORS headers for preflight requests
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' 'https://ad-craft-app.vercel.app';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=utf-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+        
+        # CORS headers for regular requests
+        add_header 'Access-Control-Allow-Origin' 'https://ad-craft-app.vercel.app' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+    }
+}
+```
+
+Enable the configuration:
+
+```bash
+sudo ln -sf /etc/nginx/sites-available/adgen-backend /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+### 2. Frontend Deployment Configuration
+
+1. Set up Next.js API routes to proxy requests to the backend:
+
+Create file: `src/app/api/generate_script/route.ts`
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    console.log('API route /api/generate_script received request:', body);
+    
+    // Forward the request to the backend
+    const backendUrl = process.env.BACKEND_URL || 'http://172.206.3.68';
+    const response = await fetch(`${backendUrl}/generate_script`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    
+    if (!response.ok) {
+      console.error('Backend returned error status:', response.status);
+      return NextResponse.json(
+        { error: `Backend error: ${response.statusText}` },
+        { status: response.status }
+      );
+    }
+    
+    const data = await response.json();
+    console.log('Backend response:', data);
+    
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error in generate_script API route:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error', details: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+```
+
+Create file: `src/app/api/regenerate_script/route.ts`
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    console.log('API route /api/regenerate_script received request:', body);
+    
+    // Forward the request to the backend
+    const backendUrl = process.env.BACKEND_URL || 'http://172.206.3.68';
+    const response = await fetch(`${backendUrl}/regenerate_script`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    
+    if (!response.ok) {
+      console.error('Backend returned error status:', response.status);
+      return NextResponse.json(
+        { error: `Backend error: ${response.statusText}` },
+        { status: response.status }
+      );
+    }
+    
+    const data = await response.json();
+    console.log('Backend response:', data);
+    
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error in regenerate_script API route:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error', details: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+```
+
+2. Configure the frontend environment variables:
+
+Create/update `.env.local`:
+```
+NEXT_PUBLIC_API_URL=/api
+BACKEND_URL=http://172.206.3.68
+```
+
+3. Update the Vercel project configuration:
+
+- Go to the Vercel dashboard for your project
+- Navigate to Settings → Environment Variables
+- Add the following variables:
+  - `NEXT_PUBLIC_API_URL=/api`
+  - `BACKEND_URL=http://172.206.3.68`
+
+4. Deploy the frontend to Vercel:
+
+- Push your code to GitHub
+- Connect your GitHub repository to Vercel
+- Deploy the project
+
+### 3. TTS Model Deployment (Future Step)
+
+For the Text-to-Speech model that will be added later:
+
+1. Install the required dependencies:
+   - CUDA drivers are already installed on the VM
+   - The T4 GPU will be used for inference
+
+2. Update the backend code to use the GPU for TTS inference
+
+3. Ensure the TTS model files are properly stored on the VM
+
+4. Create a corresponding API route in Next.js to proxy TTS requests
+
+### 4. Troubleshooting Connection Issues
+
+If API routes still encounter issues connecting to the backend:
+
+1. Check browser developer tools for network errors:
+   - Look for 4xx or 5xx HTTP errors in the Network tab
+   - Check for errors in the Console tab
+
+2. Verify the backend API is accessible from the internet:
+   - Test with a tool like Postman or curl from another machine
+   - Ensure the VM's firewall allows incoming connections on port 80
+
+3. Check the server logs:
+   - Frontend logs in Vercel dashboard
+   - Backend logs with `sudo journalctl -u adgen-backend -f`
+
+4. Test the API endpoints directly:
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"product_name":"Test","target_audience":"Test","key_selling_points":"Test","tone":"Professional","ad_length":30,"speaker_voice":"Male"}' http://172.206.3.68/generate_script
+```
+
+## Summary of Environment Variables
+
+### Backend (.env)
+- `CREW_API_KEY`: Required for CrewAI functionality
+- `OPENAI_API_KEY`: Required for OpenAI API access
+
+### Frontend (.env.local on Vercel)
+- `NEXT_PUBLIC_API_URL`: Set to `/api` to use Next.js API routes
+- `BACKEND_URL`: Points to the backend server URL
+
+## Starting the Services Manually (if needed)
+
+### Backend
+```bash
+cd /home/azureuser/marketing-app-ad-gen/backend
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+### Monitoring Backend Logs
+```bash
+sudo journalctl -u adgen-backend -f
+```
 
 ## Conclusion
 
-Deploying a split architecture application (frontend on Vercel, backend on VM) requires careful planning and configuration. This guide provides a framework for deployment, but you may need to adapt specific steps based on your exact requirements and infrastructure choices.
+By following this deployment guide, you should be able to properly deploy the Marketing App Ad Generation Tool with the frontend on Vercel and the backend on your Linux VM with GPU support.
 
-After initial deployment, consider implementing:
-- CI/CD pipelines for automated deployment
-- More robust monitoring and alerting
-- Regular backup procedures for your backend data
-- Load testing to ensure your application can handle expected traffic
-
-Remember to regularly update both your application code and the underlying infrastructure to maintain security and performance. 
+The key elements of this solution:
+1. The backend runs on the VM with proper CORS settings
+2. Next.js API routes in the frontend proxy requests to the backend
+3. This approach avoids mixed content security issues
+4. All required environment variables are correctly set on both ends 
