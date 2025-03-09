@@ -237,49 +237,59 @@ const ResultsPage: React.FC = () => {
       }
 
       try {
-        const parsedScript = safeJsonParse(savedScript, null);
-        if (parsedScript) {
-          setScript(parsedScript);
+        let parsedScript;
+        
+        // Handle both object and string formats
+        if (typeof savedScript === 'string') {
+          parsedScript = safeJsonParse(savedScript, null);
         } else {
+          // Already an object from Supabase
+          parsedScript = savedScript;
+        }
+        
+        if (!parsedScript) {
+          console.error('Could not parse script data');
           router.push('/script');
           return;
+        }
+        
+        setScript(parsedScript);
+        
+        // Load script version history if available
+        const savedVersions = await getItem(SCRIPT_VERSIONS_KEY);
+        if (savedVersions) {
+          try {
+            const parsedVersions = safeJsonParse(savedVersions, []);
+            // Convert string dates back to Date objects
+            const formattedVersions = parsedVersions.map((version: any) => ({
+              ...version,
+              timestamp: new Date(version.timestamp)
+            }));
+            setVersions(formattedVersions);
+          } catch (error) {
+            console.error('Error parsing script version history:', error);
+          }
+        }
+
+        // Load audio version history if available
+        const savedAudioVersions = await getItem(AUDIO_VERSIONS_KEY);
+        if (savedAudioVersions) {
+          try {
+            const parsedVersions = safeJsonParse(savedAudioVersions, []);
+            // Convert string dates back to Date objects
+            const formattedVersions = parsedVersions.map((version: any) => ({
+              ...version,
+              timestamp: new Date(version.timestamp)
+            }));
+            setAudioVersions(formattedVersions);
+          } catch (error) {
+            console.error('Error parsing audio version history:', error);
+          }
         }
       } catch (error) {
         console.error('Error parsing saved script:', error);
         router.push('/script');
         return;
-      }
-
-      // Load script version history if available
-      const savedVersions = await getItem(SCRIPT_VERSIONS_KEY);
-      if (savedVersions) {
-        try {
-          const parsedVersions = safeJsonParse(savedVersions, []);
-          // Convert string dates back to Date objects
-          const formattedVersions = parsedVersions.map((version: any) => ({
-            ...version,
-            timestamp: new Date(version.timestamp)
-          }));
-          setVersions(formattedVersions);
-        } catch (error) {
-          console.error('Error parsing script version history:', error);
-        }
-      }
-
-      // Load audio version history if available
-      const savedAudioVersions = await getItem(AUDIO_VERSIONS_KEY);
-      if (savedAudioVersions) {
-        try {
-          const parsedVersions = safeJsonParse(savedAudioVersions, []);
-          // Convert string dates back to Date objects
-          const formattedVersions = parsedVersions.map((version: any) => ({
-            ...version,
-            timestamp: new Date(version.timestamp)
-          }));
-          setAudioVersions(formattedVersions);
-        } catch (error) {
-          console.error('Error parsing audio version history:', error);
-        }
       }
     };
 

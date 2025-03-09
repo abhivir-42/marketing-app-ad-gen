@@ -1,6 +1,41 @@
 import axios from 'axios';
 import { Script, ValidationMetadata } from '@/types';
 
+// Create an axios instance with proper timeout and headers
+const apiClient = axios.create({
+  timeout: 60000, // 60 seconds timeout
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
+
+// Add request interceptor for logging
+apiClient.interceptors.request.use(
+  (config) => {
+    console.log(`Making ${config.method?.toUpperCase()} request to: ${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for logging
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log(`Response from ${response.config.url}: Status ${response.status}`);
+    return response;
+  },
+  (error) => {
+    console.error('Response error:', error.message);
+    if (axios.isAxiosError(error) && error.response) {
+      console.error(`Status: ${error.response.status}, Data:`, error.response.data);
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Determine API URL based on environment
 const getApiBaseUrl = () => {
   // Check if running on Vercel
@@ -60,14 +95,6 @@ export interface RefineScriptResult {
   validation?: ValidationMetadata;
 }
 
-// Configure axios with longer timeout
-const apiClient = axios.create({
-  timeout: 120000, // 2 minute timeout
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
 const api = {
   generateScript: async (data: Omit<GenerateScriptRequest, 'ad_length'> & { ad_length: string }): Promise<Script[]> => {
     try {
@@ -79,7 +106,9 @@ const api = {
       console.log('API URL being used:', API_BASE_URL);
       
       // Use the API route for script generation
+      console.log('About to make the API call to:', `${API_BASE_URL}/generate_script`);
       const response = await apiClient.post(`${API_BASE_URL}/generate_script`, transformedData);
+      console.log('API call completed, response status:', response.status);
       console.log('Received from backend:', response.data);
       
       // Check if the response has the expected structure
@@ -89,6 +118,7 @@ const api = {
       }
       
       // Transform the response data into the expected format if necessary
+      console.log('Processing script data format...');
       const scripts: Script[] = Array.isArray(response.data.script) 
         ? response.data.script 
         : response.data.script.split('\n').map((line: string) => {
@@ -96,10 +126,15 @@ const api = {
             return { line: scriptLine, artDirection: artDirection || '' };
           });
       
+      console.log('Final script data:', scripts);
       return scripts;
     } catch (error) {
       console.error('Error generating script:', error);
+      console.error('Error type:', typeof error);
+      console.error('Is Axios Error:', axios.isAxiosError(error));
+      
       if (axios.isAxiosError(error)) {
+        console.error('Axios error status:', error.response?.status);
         console.error('Axios error details:', error.response?.data || error.message);
         if (error.code === 'ECONNABORTED') {
           console.error('Request timed out - the backend may be overloaded or unavailable');

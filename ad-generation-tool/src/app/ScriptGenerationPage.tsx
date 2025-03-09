@@ -238,9 +238,20 @@ const ScriptGenerationPage: React.FC = () => {
       
       console.log('Script generation completed successfully');
       if (script && script.length > 0) {
-        // Store the generated script in localStorage
-        setItem(SCRIPT_STORAGE_KEY, JSON.stringify(script));
-        router.push('/results');
+        console.log('Saving script to storage...');
+        try {
+          // Make sure we're storing the script properly
+          const scriptToStore = JSON.stringify(script);
+          console.log('Storing script in stringified format:', scriptToStore);
+          
+          // Store the generated script
+          await setItem(SCRIPT_STORAGE_KEY, scriptToStore);
+          console.log('Script saved to storage, navigating to results page');
+          router.push('/results');
+        } catch (storageError) {
+          console.error('Error saving script to storage:', storageError);
+          setError('Script was generated but could not be saved. Please try again.');
+        }
       } else {
         throw new Error('Received empty or invalid script');
       }
@@ -248,19 +259,12 @@ const ScriptGenerationPage: React.FC = () => {
       console.error('Error generating script:', error);
       let errorMessage = 'Failed to generate script. Try again.';
       
-      // Provide more specific error messages based on the error
-      if (error.message?.includes('timeout') || error.code === 'ECONNABORTED') {
-        errorMessage = 'The request timed out. The server might be busy. Please try again in a moment.';
-      } else if (error.response?.status === 500) {
-        errorMessage = 'Server error. Our AI is having trouble generating your script. Please try again.';
-      } else if (error.response?.status === 400) {
-        errorMessage = 'Invalid request. Please check your inputs and try again.';
-      } else if (error.message?.includes('Network Error')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
+      if (error.response) {
+        console.error('API Error Response:', error.response.data);
+        errorMessage = error.response.data.message || errorMessage;
       }
       
       setError(errorMessage);
-      setRetryCount((prev) => prev + 1);
     } finally {
       setIsLoading(false);
     }

@@ -45,6 +45,19 @@ export async function getItem(key: string) {
         return null;
       }
       
+      // Parse data if it's a string that looks like JSON
+      if (data && data.data && typeof data.data === 'string') {
+        try {
+          // Check if it looks like JSON
+          if (data.data.startsWith('{') || data.data.startsWith('[')) {
+            return JSON.parse(data.data);
+          }
+        } catch (e) {
+          // If parsing fails, just return the raw data
+          console.error('Error parsing JSON from Supabase:', e);
+        }
+      }
+      
       return data ? data.data : null;
     } catch (error) {
       console.error('Error in getItem from Supabase:', error);
@@ -52,7 +65,18 @@ export async function getItem(key: string) {
     }
   } else {
     // Fallback to localStorage in development
-    return localStorage.getItem(key);
+    const data = localStorage.getItem(key);
+    
+    // Try to parse as JSON if it looks like JSON
+    if (data && (data.startsWith('{') || data.startsWith('['))) {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        console.error('Error parsing localStorage data:', e);
+      }
+    }
+    
+    return data;
   }
 }
 
@@ -63,10 +87,22 @@ export async function setItem(key: string, value: any) {
   const sessionId = getOrCreateSessionId();
   if (!sessionId) return;
   
+  // Convert value to string if it's not already
+  let stringValue;
+  
+  if (typeof value === 'string') {
+    stringValue = value;
+  } else {
+    try {
+      stringValue = JSON.stringify(value);
+    } catch (e) {
+      console.error('Error stringifying value:', e);
+      stringValue = String(value);
+    }
+  }
+  
   if (shouldUseSupabase()) {
     try {
-      const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
-      
       const { error } = await supabase
         .from('user_data')
         .upsert(
@@ -88,7 +124,6 @@ export async function setItem(key: string, value: any) {
   } else {
     // Fallback to localStorage in development
     try {
-      const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
       localStorage.setItem(key, stringValue);
     } catch (error) {
       console.error('Error setting item in localStorage:', error);
