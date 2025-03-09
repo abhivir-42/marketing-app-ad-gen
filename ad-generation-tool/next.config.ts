@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
       // If an API request doesn't match any Next.js routes, proxy it to the backend
       {
         source: '/api/:path*',
-        destination: '/api/:path*',
+        destination: process.env.BACKEND_URL + '/:path*',
       },
     ];
   },
