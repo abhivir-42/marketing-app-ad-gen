@@ -95,7 +95,8 @@ const api = {
         reverted_changes: [],
         had_length_mismatch: false,
         original_length: currentScript.length,
-        received_length: response.data.data ? response.data.data.length : 0
+        received_length: response.data.data ? response.data.data.length : 0,
+        selected_sentences: data.selected_sentences
       };
       
       // STEP 5: APPLY MODIFICATIONS WITH FRONTEND VERIFICATION

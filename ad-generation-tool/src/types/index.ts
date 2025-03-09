@@ -19,6 +19,7 @@ export interface ValidationMetadata {
   original_length: number;
   received_length: number;
   error?: string;
+  selected_sentences?: number[];
 }
 
 export interface RefineScriptResponse {
