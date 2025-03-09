@@ -1,7 +1,7 @@
-[  
-  ("Introducing the new TEST PRODUCT... designed for YOU.", "Tone: Confident, moderate pacing, slight emphasis on 'NEW' and 'YOU'."),  
-  ("Experience GREAT features that will TRANSFORM your daily routine.", "Tone: Engaging, slow and clear on 'GREAT' and 'TRANSFORM'."),
-  ("It's TIME to elevate your lifestyle... with innovative solutions.", "Tone: Enthusiastic, slightly faster pacing for 'TIME', and slower for 'innovative solutions'."),
-  ("Don't MISS out on what everyone is talking about!", "Tone: Urgent, quickening pace to generate excitement and emphasize 'MISS'."),  
-  ("Try TEST PRODUCT today... and see the CHANGE for yourself!", "Tone: Inviting, warm, with a slight raise in pitch on 'CHANGE' and 'yourself'.")  
+[
+  ("Introducing the TEST PRODUCT... a game changer in its class.", "Professional tone; slightly slow for emphasis on 'game changer' and use a pause after 'class'."),
+  ("Discover its GREAT FEATURES... that redefine your experience.", "Professional tone; slight emphasis on 'GREAT FEATURES' with a pause, then resume a steady rhythm."),
+  ("It's FAST, EASY, and RELIABLE.", "Clear and upbeat tone; emphasize 'FAST', 'EASY', and 'RELIABLE' with slight pauses in between each word."),
+  ("Join the TEST AUDIENCE... leading the way to a better tomorrow.", "Slightly inspirational tone; pause after 'AUDIENCE' for impact."),
+  ("Order now, and elevate your experience... with the TEST PRODUCT!", "Encouraging tone; emphasize 'Order now' and 'elevate your experience' with a strong finish on 'TEST PRODUCT' followed by a slight pause.")
 ]

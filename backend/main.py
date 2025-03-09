@@ -148,8 +148,8 @@ async def run_crewai_script(inputs: dict) -> List[Dict[str, str]]:
         script_gen_dir = Path(__file__).parent / "script_generation" / "src"
         os.chdir(script_gen_dir)
         
-        # Use relative path instead of hardcoded absolute path
-        output_path = Path(__file__).parent / "script_generation" / "radio_script.md"
+        # Use the same absolute path as in crew.py
+        output_path = Path("/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md")
         if output_path.exists():
             output_path.unlink()
             
@@ -227,8 +227,8 @@ The indices that should be modified are: {selected_sentences}
         script_gen_dir = Path(__file__).parent / "regenerate_script" / "src"
         os.chdir(script_gen_dir)
         
-        # Use relative path instead of hardcoded absolute path
-        output_path = Path(__file__).parent / "regenerate_script" / "refined_script.md"
+        # Use the same absolute path as in crew.py
+        output_path = Path("/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md")
         if output_path.exists():
             output_path.unlink()
         

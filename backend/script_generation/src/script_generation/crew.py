@@ -41,7 +41,8 @@ class ScriptGeneration():
 	# https://docs.crewai.com/concepts/tasks#overview-of-a-task
     @task
     def ad_script_task(self) -> Task:
-        output_path = Path(__file__).parent.parent.parent / 'radio_script.md'
+        # Use an absolute path that will work on the server
+        output_path = Path("/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md")
         print(f"Expected output path: {output_path}")  # Debugging line
         print("Starting ad script task...")  # Debugging line
         task = Task(
