@@ -2,6 +2,7 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from pathlib import Path
+import os
 
 @CrewBase
 class ScriptGeneration():
@@ -41,15 +42,26 @@ class ScriptGeneration():
 	# https://docs.crewai.com/concepts/tasks#overview-of-a-task
     @task
     def ad_script_task(self) -> Task:
-        # Use an absolute path that will work on the server
-        output_path = Path("/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md")
-        print(f"Expected output path: {output_path}")  # Debugging line
-        print("Starting ad script task...")  # Debugging line
+        # Get output path from environment variable or use default
+        env_output_path = os.environ.get("SCRIPT_OUTPUT_PATH")
+        if env_output_path:
+            output_path = Path(env_output_path)
+        else:
+            # Use an absolute path that will work on the server
+            output_path = Path("/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md")
+        
+        print(f"Using output path from environment: {env_output_path}")
+        print(f"Final output path: {output_path}")
+        print("Starting ad script task...")
+        
+        # Ensure the directory exists
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
         task = Task(
             config=self.tasks_config['ad_script_task'],
             output_file=str(output_path)
         )
-        print("Task created, returning task...")  # Debugging line
+        print("Task created, returning task...")
         return task
 
     @crew

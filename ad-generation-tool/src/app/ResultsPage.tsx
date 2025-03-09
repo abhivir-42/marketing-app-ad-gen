@@ -333,76 +333,116 @@ const ResultsPage: React.FC = () => {
     setValidationFeedback(null);
     setValidationData(null);
 
-    try {
-      // STEP 1: PREPARE REQUEST DATA
-      // Retrieve original form data to maintain context for AI
-      const formData = JSON.parse(localStorage.getItem('scriptGenerationFormData') || '{}');
-      
-      // Format script for API request (convert to tuple format expected by backend)
-      const currentScript: [string, string][] = script.map(item => [item.line, item.artDirection]);
-      
-      // STEP 2: CALL API WITH VALIDATION SAFEGUARDS
-      // The refineScriptWithValidation function includes both backend and frontend validation
-      const result = await api.refineScriptWithValidation({
-        selected_sentences: selectedLines,       // Only these sentences should be modified
-        improvement_instruction: improvementInstruction,
-        current_script: currentScript,
-        key_selling_points: formData.keySellingPoints || '',
-        tone: formData.tone || '',
-        ad_length: formData.adLength || ''
-      });
+    // Maximum number of retries
+    const MAX_RETRIES = 2;
+    let currentRetry = 0;
+    let lastError: Error | null = null;
 
-      if (result && result.script && result.script.length > 0) {
-        // STEP 3: SAVE VERSION HISTORY
-        // Save current version before applying changes to allow for comparison
-        saveScriptVersion(`AI refinement: ${improvementInstruction}`);
+    while (currentRetry <= MAX_RETRIES) {
+      try {
+        // STEP 1: PREPARE REQUEST DATA
+        // Retrieve original form data to maintain context for AI
+        const formData = JSON.parse(localStorage.getItem('scriptGenerationFormData') || '{}');
         
-        // STEP 4: UPDATE SCRIPT WITH VALIDATED CHANGES
-        // The result.script already contains the safely modified content
-        setScript(result.script);
-        localStorage.setItem('generatedScript', JSON.stringify(result.script));
+        // Format script for API request (convert to tuple format expected by backend)
+        const currentScript: [string, string][] = script.map(item => [item.line, item.artDirection]);
         
-        // STEP 5: HANDLE VALIDATION FEEDBACK
-        // Process and display validation results to the user
-        if (result.validation) {
-          // Store the selected sentences in the validation data before resetting them
-          result.validation.selected_sentences = [...selectedLines];
+        console.log(`Preparing to refine script (attempt ${currentRetry + 1}/${MAX_RETRIES + 1}):`, {
+          selectedLines,
+          improvementInstruction,
+          scriptLength: currentScript.length
+        });
+        
+        // STEP 2: CALL API WITH VALIDATION SAFEGUARDS
+        // The refineScriptWithValidation function includes both backend and frontend validation
+        const result = await api.refineScriptWithValidation({
+          selected_sentences: selectedLines,       // Only these sentences should be modified
+          improvement_instruction: improvementInstruction,
+          current_script: currentScript,
+          key_selling_points: formData.keySellingPoints || '',
+          tone: formData.tone || '',
+          ad_length: formData.adLength || ''
+        });
+
+        console.log('Refinement result:', result);
+
+        if (result && result.script && result.script.length > 0) {
+          // STEP 3: SAVE VERSION HISTORY
+          // Save current version before applying changes to allow for comparison
+          saveScriptVersion(`AI refinement: ${improvementInstruction}`);
           
-          // Store validation data for UI rendering
-          setValidationData(result.validation);
+          // STEP 4: UPDATE SCRIPT WITH VALIDATED CHANGES
+          // The result.script already contains the safely modified content
+          setScript(result.script);
+          localStorage.setItem('generatedScript', JSON.stringify(result.script));
           
-          // STEP 6: PERSIST VALIDATION STATE
-          // Save validation data to localStorage for persistence across page refreshes
-          localStorage.setItem('validationData', JSON.stringify(result.validation));
-          
-          // STEP 7: DETERMINE VALIDATION STATUS
-          const validation = result.validation;
-          if (validation.had_unauthorized_changes || validation.had_length_mismatch) {
-            // Validation issues detected - will be displayed by ValidationFeedback component
-            console.log('Validation issues detected:', validation);
-          } else {
-            // Success case - no validation issues found
-            setValidationFeedback('Script successfully refined with no validation issues.');
-            localStorage.removeItem('validationData');
+          // STEP 5: HANDLE VALIDATION FEEDBACK
+          // Process and display validation results to the user
+          if (result.validation) {
+            // Store the selected sentences in the validation data before resetting them
+            result.validation.selected_sentences = [...selectedLines];
+            
+            // Store validation data for UI rendering
+            setValidationData(result.validation);
+            
+            // STEP 6: PERSIST VALIDATION STATE
+            // Save validation data to localStorage for persistence across page refreshes
+            localStorage.setItem('validationData', JSON.stringify(result.validation));
+            
+            // STEP 7: DETERMINE VALIDATION STATUS
+            const validation = result.validation;
+            if (validation.had_unauthorized_changes || validation.had_length_mismatch) {
+              // Validation issues detected - will be displayed by ValidationFeedback component
+              console.log('Validation issues detected:', validation);
+            } else {
+              // Success case - no validation issues found
+              setValidationFeedback('Script successfully refined with no validation issues.');
+              localStorage.removeItem('validationData');
+            }
           }
+          
+          // STEP 8: RESET UI STATE
+          // Clear selection and input after successful refinement
+          setSelectedLines([]);
+          setImprovementInstruction('');
+          setHasUnsavedChanges(false);
+          
+          // Success! Break out of the retry loop
+          break;
+        } else {
+          throw new Error('Received empty or invalid script from refinement');
         }
+      } catch (error) {
+        // Store the error for potential retry
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.error(`Error refining script (attempt ${currentRetry + 1}/${MAX_RETRIES + 1}):`, lastError);
         
-        // STEP 8: RESET UI STATE
-        // Clear selection and input after successful refinement
-        setSelectedLines([]);
-        setImprovementInstruction('');
-        setHasUnsavedChanges(false);
-      } else {
-        throw new Error('Received empty or invalid script from refinement');
+        // Increment retry counter
+        currentRetry++;
+        
+        // If we have more retries, wait a bit before trying again
+        if (currentRetry <= MAX_RETRIES) {
+          console.log(`Retrying in 1 second... (${currentRetry}/${MAX_RETRIES})`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
-    } catch (error) {
-      // STEP 9: ERROR HANDLING
-      console.error('Error refining script:', error);
-      setError('Failed to refine script. Please try again.');
-      setRetryCount((prev) => prev + 1);
-    } finally {
-      setIsRefining(false);
     }
+    
+    // If we've exhausted all retries and still have an error, show it to the user
+    if (lastError) {
+      // STEP 9: ERROR HANDLING
+      let errorMessage = 'Failed to refine script. Please try again.';
+      
+      if (lastError.message.includes('Invalid response format') || lastError.message.includes('empty or invalid script')) {
+        errorMessage = 'The server returned an invalid response. Please try again or contact support.';
+      }
+      
+      setError(errorMessage);
+      setRetryCount((prev) => prev + 1);
+    }
+    
+    // Always reset the refining state
+    setIsRefining(false);
   };
 
   const handleRefinementRetry = () => {

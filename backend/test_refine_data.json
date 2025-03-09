@@ -1,0 +1,12 @@
+{
+  "selected_sentences": [0, 1],
+  "improvement_instruction": "Replace the text completely with much more exciting wording and emphasize RELIABILITY as the main selling point",
+  "current_script": [
+    ["Introducing TestProduct... the solution you've been waiting for.", "Voice should sound confident, with a slight pause after 'TestProduct' for emphasis."],
+    ["It's FAST, RELIABLE, and EASY TO USE.", "Emphasize each key selling point (FAST, RELIABLE, EASY TO USE) with slight inflection and a steady pace."],
+    ["Say goodbye to complicated setups.", "Use a conversational tone, suggesting relief."]
+  ],
+  "key_selling_points": "Fast, Reliable, Easy to use",
+  "tone": "Professional",
+  "ad_length": 30
+} 

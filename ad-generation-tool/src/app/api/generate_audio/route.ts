@@ -6,11 +6,13 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { speed, pitch, script, voiceId } = body;
     
-    // Determine if we're running locally or in production
-    const isProduction = process.env.NODE_ENV === 'production';
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+    // Determine the backend URL based on environment
+    const isVercel = process.env.VERCEL === '1';
+    const backendUrl = isVercel 
+      ? (process.env.NEXT_PUBLIC_VERCEL_API_URL || 'http://172.206.3.68:8000')
+      : (process.env.BACKEND_URL || 'http://localhost:8001');
     
-    console.log(`Calling ${isProduction ? 'production' : 'local'} backend at ${backendUrl}`);
+    console.log(`Calling backend at ${backendUrl} (Vercel: ${isVercel})`);
     
     // Prepare request to our FastAPI backend
     const response = await fetch(`${backendUrl}/generate_audio`, {
@@ -27,7 +29,12 @@ export async function POST(req: Request) {
     });
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { detail: await response.text() };
+      }
       throw new Error(`Backend API error: ${response.status} ${errorData.detail || response.statusText}`);
     }
     
