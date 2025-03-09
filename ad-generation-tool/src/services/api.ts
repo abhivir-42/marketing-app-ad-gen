@@ -3,9 +3,13 @@ import { Script, ValidationMetadata } from '@/types';
 
 // Create an axios instance with proper timeout and headers
 const apiClient = axios.create({
-  timeout: 60000, // 60 seconds timeout
+  timeout: 120000, // Increased to 2 minutes
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept'
   }
 });
 
@@ -44,19 +48,27 @@ const getApiBaseUrl = () => {
   // Check if we're in the browser (client-side) or Node.js (server-side)
   const isBrowser = typeof window !== 'undefined';
   
-  console.log('Environment variables:', {
+  console.log('[DEBUG-ENV] Environment variables:', {
     VERCEL: process.env.VERCEL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_VERCEL_API_URL: process.env.NEXT_PUBLIC_VERCEL_API_URL,
+    NODE_ENV: process.env.NODE_ENV,
     isBrowser
   });
   
+  // Always use direct backend connection for debugging
+  if (isBrowser && !isVercel && process.env.NODE_ENV !== 'production') {
+    // For local development testing, try using the direct backend URL
+    console.log('[DEBUG-ENV] Using direct backend URL for debugging');
+    return 'http://172.206.3.68:8000';
+  }
+  
   if (isVercel || process.env.NODE_ENV === 'production') {
-    console.log('Using Vercel/Production API URL');
+    console.log('[DEBUG-ENV] Using Vercel/Production API URL');
     // When deployed to Vercel, use the Next.js API routes
     return '/api';
   } else {
-    console.log('Using local API URL');
+    console.log('[DEBUG-ENV] Using local API URL');
     // For local development or server-side rendering
     return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
   }
@@ -96,50 +108,105 @@ export interface RefineScriptResult {
 }
 
 const api = {
+  // Test connection to backend
+  testConnection: async (): Promise<boolean> => {
+    try {
+      console.log('[DEBUG] Testing connection to backend...');
+      const url = `${API_BASE_URL}/test_connection`;
+      console.log('[DEBUG] Testing URL:', url);
+      
+      const response = await apiClient.get(url);
+      console.log('[DEBUG] Test connection response:', response.data);
+      return true;
+    } catch (error) {
+      console.error('[DEBUG] Test connection failed:', error);
+      return false;
+    }
+  },
+
   generateScript: async (data: Omit<GenerateScriptRequest, 'ad_length'> & { ad_length: string }): Promise<Script[]> => {
     try {
+      console.log('[DEBUG] generateScript called with data:', data);
+      
       const transformedData: GenerateScriptRequest = {
         ...data,
         ad_length: parseAdLengthToSeconds(data.ad_length)
       };
-      console.log('Sending to backend:', transformedData);
-      console.log('API URL being used:', API_BASE_URL);
+      console.log('[DEBUG] Transformed data:', transformedData);
+      console.log('[DEBUG] API URL being used:', API_BASE_URL);
       
       // Use the API route for script generation
-      console.log('About to make the API call to:', `${API_BASE_URL}/generate_script`);
+      console.log('[DEBUG] About to make POST request to:', `${API_BASE_URL}/generate_script`);
+      console.log('[DEBUG] With headers:', apiClient.defaults.headers);
+      
       const response = await apiClient.post(`${API_BASE_URL}/generate_script`, transformedData);
-      console.log('API call completed, response status:', response.status);
-      console.log('Received from backend:', response.data);
+      
+      console.log('[DEBUG] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+        hasData: !!response.data,
+        hasScript: response.data && !!response.data.script
+      });
       
       // Check if the response has the expected structure
-      if (!response.data || !response.data.script) {
-        console.error('Unexpected response format:', response.data);
-        throw new Error('Invalid response format from the server');
+      if (!response.data) {
+        console.error('[DEBUG] No response data received');
+        throw new Error('No response data received from the server');
       }
+      
+      if (!response.data.script) {
+        console.error('[DEBUG] Response data does not contain script:', response.data);
+        throw new Error('Invalid response format from the server: missing script');
+      }
+      
+      console.log('[DEBUG] Script data received:', response.data.script);
       
       // Transform the response data into the expected format if necessary
-      console.log('Processing script data format...');
-      const scripts: Script[] = Array.isArray(response.data.script) 
-        ? response.data.script 
-        : response.data.script.split('\n').map((line: string) => {
-            const [scriptLine, artDirection] = line.split('|').map(s => s.trim());
-            return { line: scriptLine, artDirection: artDirection || '' };
-          });
+      let scripts: Script[];
       
-      console.log('Final script data:', scripts);
+      if (Array.isArray(response.data.script)) {
+        console.log('[DEBUG] Script is already an array');
+        scripts = response.data.script;
+      } else {
+        console.log('[DEBUG] Converting script string to array format');
+        scripts = response.data.script.split('\n').map((line: string) => {
+          const [scriptLine, artDirection] = line.split('|').map(s => s.trim());
+          return { line: scriptLine, artDirection: artDirection || '' };
+        });
+      }
+      
+      console.log('[DEBUG] Final processed script:', scripts);
       return scripts;
     } catch (error) {
-      console.error('Error generating script:', error);
-      console.error('Error type:', typeof error);
-      console.error('Is Axios Error:', axios.isAxiosError(error));
+      console.error('[DEBUG] Error in generateScript:', error);
       
+      // Add detailed error reporting
       if (axios.isAxiosError(error)) {
-        console.error('Axios error status:', error.response?.status);
-        console.error('Axios error details:', error.response?.data || error.message);
-        if (error.code === 'ECONNABORTED') {
-          console.error('Request timed out - the backend may be overloaded or unavailable');
+        console.error('[DEBUG] This is an Axios error');
+        console.error('[DEBUG] Error code:', error.code);
+        console.error('[DEBUG] Error message:', error.message);
+        
+        if (error.response) {
+          console.error('[DEBUG] Response status:', error.response.status);
+          console.error('[DEBUG] Response headers:', error.response.headers);
+          console.error('[DEBUG] Response data:', error.response.data);
+        } else if (error.request) {
+          console.error('[DEBUG] Request was made but no response received');
+          console.error('[DEBUG] Request details:', error.request);
+        } else {
+          console.error('[DEBUG] Error in setting up the request');
         }
+        
+        if (error.code === 'ECONNABORTED') {
+          console.error('[DEBUG] Request timed out');
+        }
+      } else {
+        console.error('[DEBUG] This is not an Axios error');
+        console.error('[DEBUG] Error type:', typeof error);
+        console.error('[DEBUG] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       }
+      
       throw error;
     }
   },

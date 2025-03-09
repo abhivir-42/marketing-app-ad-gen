@@ -226,42 +226,77 @@ const ScriptGenerationPage: React.FC = () => {
     setError(null);
 
     try {
-      console.log('Starting script generation...');
-      const script = await api.generateScript({
+      // First test the connection to the backend
+      console.log('[DEBUG-UI] Testing connection to backend...');
+      const connectionOk = await api.testConnection();
+      
+      if (!connectionOk) {
+        console.error('[DEBUG-UI] Connection test failed');
+        throw new Error('Cannot connect to the backend server. Please check your connection and try again.');
+      }
+      
+      console.log('[DEBUG-UI] Connection test successful, proceeding with script generation');
+      
+      console.log('[DEBUG-UI] Starting script generation...');
+      const formDataForDebug = {
         product_name: formData.productName,
         target_audience: formData.targetAudience,
         key_selling_points: formData.keySellingPoints,
         tone: formData.tone,
         ad_length: formData.adLength,
         speaker_voice: formData.adSpeakerVoice
-      });
+      };
+      console.log('[DEBUG-UI] Form data being sent:', formDataForDebug);
       
-      console.log('Script generation completed successfully');
+      const script = await api.generateScript(formDataForDebug);
+      
+      console.log('[DEBUG-UI] Script generation completed successfully');
+      console.log('[DEBUG-UI] Script received:', script);
+      
       if (script && script.length > 0) {
-        console.log('Saving script to storage...');
+        console.log('[DEBUG-UI] Saving script to storage...');
         try {
           // Make sure we're storing the script properly
           const scriptToStore = JSON.stringify(script);
-          console.log('Storing script in stringified format:', scriptToStore);
+          console.log('[DEBUG-UI] Storing script in stringified format:', scriptToStore);
           
           // Store the generated script
           await setItem(SCRIPT_STORAGE_KEY, scriptToStore);
-          console.log('Script saved to storage, navigating to results page');
+          console.log('[DEBUG-UI] Script saved to storage, navigating to results page');
           router.push('/results');
         } catch (storageError) {
-          console.error('Error saving script to storage:', storageError);
+          console.error('[DEBUG-UI] Error saving script to storage:', storageError);
           setError('Script was generated but could not be saved. Please try again.');
         }
       } else {
+        console.error('[DEBUG-UI] Script is empty or invalid');
         throw new Error('Received empty or invalid script');
       }
     } catch (error: any) {
-      console.error('Error generating script:', error);
+      console.error('[DEBUG-UI] Error generating script:', error);
+      console.error('[DEBUG-UI] Error type:', typeof error);
+      console.error('[DEBUG-UI] Is error an instance of Error?', error instanceof Error);
+      
+      if (error instanceof Error) {
+        console.error('[DEBUG-UI] Error name:', error.name);
+        console.error('[DEBUG-UI] Error message:', error.message);
+        console.error('[DEBUG-UI] Error stack:', error.stack);
+      }
+      
       let errorMessage = 'Failed to generate script. Try again.';
       
       if (error.response) {
-        console.error('API Error Response:', error.response.data);
-        errorMessage = error.response.data.message || errorMessage;
+        console.error('[DEBUG-UI] API Error Response:', error.response);
+        console.error('[DEBUG-UI] Response status:', error.response.status);
+        console.error('[DEBUG-UI] Response data:', error.response.data);
+        errorMessage = error.response.data?.message || errorMessage;
+      } else if (error.request) {
+        console.error('[DEBUG-UI] Request was made but no response was received');
+        console.error('[DEBUG-UI] Request:', error.request);
+        errorMessage = 'No response from server. Please check your connection and try again.';
+      } else if (error.message) {
+        console.error('[DEBUG-UI] Error setting up the request:', error.message);
+        errorMessage = error.message;
       }
       
       setError(errorMessage);
