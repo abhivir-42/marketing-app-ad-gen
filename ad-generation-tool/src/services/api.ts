@@ -16,10 +16,10 @@ const getApiBaseUrl = () => {
     isBrowser
   });
   
-  if (isVercel) {
-    console.log('Using Vercel API URL');
-    // On Vercel deployed frontend, use the VM IP address
-    return process.env.NEXT_PUBLIC_VERCEL_API_URL || 'http://172.206.3.68:8000';
+  if (isVercel || process.env.NODE_ENV === 'production') {
+    console.log('Using Vercel/Production API URL');
+    // When deployed to Vercel, use the Next.js API routes
+    return '/api';
   } else {
     console.log('Using local API URL');
     // For local development or server-side rendering
@@ -27,10 +27,15 @@ const getApiBaseUrl = () => {
   }
 };
 
-// Set API base URL dynamically
+// Use the determined API base URL
 const API_BASE_URL = getApiBaseUrl();
-
 console.log('Using API base URL:', API_BASE_URL);
+
+// Helper function to convert ad length string to seconds for the backend
+const parseAdLengthToSeconds = (adLength: string): number => {
+  const seconds = parseInt(adLength.replace('s', ''), 10);
+  return isNaN(seconds) ? 30 : seconds; // Default to 30 seconds if parsing fails
+};
 
 export interface GenerateScriptRequest {
   product_name: string;
@@ -55,10 +60,13 @@ export interface RefineScriptResult {
   validation?: ValidationMetadata;
 }
 
-// Helper function to convert ad length string to number
-const parseAdLengthToSeconds = (adLength: string): number => {
-  return parseInt(adLength.replace('s', ''), 10);
-};
+// Configure axios with longer timeout
+const apiClient = axios.create({
+  timeout: 120000, // 2 minute timeout
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
 const api = {
   generateScript: async (data: Omit<GenerateScriptRequest, 'ad_length'> & { ad_length: string }): Promise<Script[]> => {
@@ -68,9 +76,10 @@ const api = {
         ad_length: parseAdLengthToSeconds(data.ad_length)
       };
       console.log('Sending to backend:', transformedData);
+      console.log('API URL being used:', API_BASE_URL);
       
       // Use the API route for script generation
-      const response = await axios.post(`${API_BASE_URL}/generate_script`, transformedData);
+      const response = await apiClient.post(`${API_BASE_URL}/generate_script`, transformedData);
       console.log('Received from backend:', response.data);
       
       // Check if the response has the expected structure
@@ -92,6 +101,9 @@ const api = {
       console.error('Error generating script:', error);
       if (axios.isAxiosError(error)) {
         console.error('Axios error details:', error.response?.data || error.message);
+        if (error.code === 'ECONNABORTED') {
+          console.error('Request timed out - the backend may be overloaded or unavailable');
+        }
       }
       throw error;
     }
@@ -112,11 +124,12 @@ const api = {
       };
       
       console.log('Sending to backend for refinement:', transformedData);
+      console.log('API URL being used:', API_BASE_URL);
       
       // STEP 2: SEND REQUEST TO BACKEND WITH SELECTED SENTENCES
       // The backend will apply its own validation to prevent unauthorized changes
       // Use the refine_script API route (which proxies to the backend's regenerate_script endpoint)
-      const response = await axios.post(`${API_BASE_URL}/refine_script`, transformedData);
+      const response = await apiClient.post(`${API_BASE_URL}/refine_script`, transformedData);
       console.log('Received from backend after refinement:', response.data);
       
       // Check if the response has the expected structure
@@ -135,51 +148,46 @@ const api = {
       // Create a new script by applying modifications only to the specified indices
       const modifiedScript = [...currentScript];
       
-      // STEP 4: FRONTEND SAFEGUARD - ADDITIONAL VALIDATION LAYER
-      // This provides a second layer of protection to ensure only selected sentences are modified
-      const frontendValidation: ValidationMetadata = {
+      // Track which sentences were actually modified
+      const frontendValidation = {
         had_unauthorized_changes: false,
-        reverted_changes: [],
-        had_length_mismatch: false,
-        original_length: currentScript.length,
-        received_length: response.data.data ? response.data.data.length : 0,
-        selected_sentences: data.selected_sentences
+        reverted_changes: [] as any[]
       };
       
-      // STEP 5: APPLY MODIFICATIONS WITH FRONTEND VERIFICATION
-      // Only apply changes to sentences that were explicitly selected for modification
-      if (response.data.modified_indices && response.data.data) {
-        // First pass: Verify all modifications are for selected sentences
-        response.data.modified_indices.forEach((index: number, i: number) => {
-          // Verify the index is valid and was selected for modification
-          const isValidModification = index >= 0 && 
-                                     index < modifiedScript.length && 
-                                     i < response.data.data.length &&
-                                     data.selected_sentences.includes(index); // KEY CHECK: Was this sentence selected?
+      // STEP 4: APPLY BACKEND CHANGES TO SELECTED SENTENCES
+      // Apply the changes from the backend response to the selected sentences
+      for (let i = 0; i < response.data.data.length; i++) {
+        const idx = response.data.modified_indices?.[i] ?? data.selected_sentences[i];
+        if (idx !== undefined && idx < modifiedScript.length) {
+          modifiedScript[idx] = {
+            line: response.data.data[i].line,
+            artDirection: response.data.data[i].artDirection
+          };
+        }
+      }
+      
+      // STEP 5: VERIFY ONLY SELECTED SENTENCES WERE MODIFIED
+      // Double-check that only the selected sentences were modified
+      for (let i = 0; i < currentScript.length; i++) {
+        // If this sentence wasn't selected for modification, it should remain unchanged
+        if (!data.selected_sentences.includes(i)) {
+          const original = currentScript[i];
+          const modified = modifiedScript[i];
           
-          if (!isValidModification && index < modifiedScript.length) {
-            // UNAUTHORIZED CHANGE DETECTED: Log and track for reporting to user
+          // Check if the sentence was modified despite not being selected
+          if (original.line !== modified.line || original.artDirection !== modified.artDirection) {
+            console.warn(`Unauthorized change detected at index ${i}. Reverting to original.`);
             frontendValidation.had_unauthorized_changes = true;
             frontendValidation.reverted_changes.push({
-              index,
-              original: modifiedScript[index],
-              attempted: {
-                line: response.data.data[i].line || response.data.data[i][0],
-                artDirection: response.data.data[i].artDirection || response.data.data[i][1]
-              }
+              index: i,
+              original: original,
+              attempted: modified
             });
             
-            console.warn(`Frontend safeguard: Prevented unauthorized change to sentence ${index}`);
-            // IMPORTANT: We don't apply this change, keeping the original content
-          } else if (isValidModification) {
-            // AUTHORIZED CHANGE: Apply the modification since it's to a selected sentence
-            const modifiedSentence = response.data.data[i];
-            modifiedScript[index] = {
-              line: modifiedSentence.line || modifiedSentence[0],
-              artDirection: modifiedSentence.artDirection || modifiedSentence[1]
-            };
+            // Revert the unauthorized change
+            modifiedScript[i] = { ...original };
           }
-        });
+        }
       }
       
       // STEP 6: COMBINE VALIDATION RESULTS
@@ -203,6 +211,9 @@ const api = {
       console.error('Error refining script:', error);
       if (axios.isAxiosError(error)) {
         console.error('Axios error details:', error.response?.data || error.message);
+        if (error.code === 'ECONNABORTED') {
+          console.error('Request timed out - the backend may be overloaded or unavailable');
+        }
       }
       throw error;
     }

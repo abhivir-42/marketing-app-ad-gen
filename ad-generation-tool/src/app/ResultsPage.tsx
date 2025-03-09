@@ -336,7 +336,7 @@ const ResultsPage: React.FC = () => {
     // Maximum number of retries
     const MAX_RETRIES = 2;
     let currentRetry = 0;
-    let lastError: Error | null = null;
+    let lastError: any = null;
 
     while (currentRetry <= MAX_RETRIES) {
       try {
@@ -412,9 +412,9 @@ const ResultsPage: React.FC = () => {
         } else {
           throw new Error('Received empty or invalid script from refinement');
         }
-      } catch (error) {
+      } catch (error: any) {
         // Store the error for potential retry
-        lastError = error instanceof Error ? error : new Error(String(error));
+        lastError = error;
         console.error(`Error refining script (attempt ${currentRetry + 1}/${MAX_RETRIES + 1}):`, lastError);
         
         // Increment retry counter
@@ -433,7 +433,16 @@ const ResultsPage: React.FC = () => {
       // STEP 9: ERROR HANDLING
       let errorMessage = 'Failed to refine script. Please try again.';
       
-      if (lastError.message.includes('Invalid response format') || lastError.message.includes('empty or invalid script')) {
+      // Provide more specific error messages based on the error
+      if (lastError.message?.includes('timeout') || lastError.code === 'ECONNABORTED') {
+        errorMessage = 'The request timed out. The server might be busy. Please try again in a moment.';
+      } else if (lastError.response?.status === 500) {
+        errorMessage = 'Server error. Our AI is having trouble refining your script. Please try again.';
+      } else if (lastError.response?.status === 400) {
+        errorMessage = 'Invalid request. Please check your inputs and try again.';
+      } else if (lastError.message?.includes('Network Error')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (lastError.message?.includes('Invalid response format') || lastError.message?.includes('empty or invalid script')) {
         errorMessage = 'The server returned an invalid response. Please try again or contact support.';
       }
       

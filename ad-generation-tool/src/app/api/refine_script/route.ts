@@ -39,45 +39,64 @@ export async function POST(request: NextRequest) {
     
     console.log('Using backend URL:', backendUrl);
     
-    // Forward the request to the backend's regenerate_script endpoint
-    const response = await fetch(`${backendUrl}/regenerate_script`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+    // Forward the request to the backend with a timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60-second timeout
     
-    if (!response.ok) {
-      console.error('Backend returned error status:', response.status);
-      let errorText = '';
-      try {
-        const errorData = await response.json();
-        errorText = JSON.stringify(errorData);
-      } catch (e) {
-        errorText = await response.text();
-      }
-      console.error('Error details:', errorText);
+    try {
+      // Forward the request to the backend's regenerate_script endpoint
+      const response = await fetch(`${backendUrl}/regenerate_script`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
       
-      return NextResponse.json(
-        { error: `Backend error: ${response.statusText}`, details: errorText },
-        { status: response.status }
-      );
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        console.error('Backend returned error status:', response.status);
+        let errorText = '';
+        try {
+          const errorData = await response.json();
+          errorText = JSON.stringify(errorData);
+        } catch (e) {
+          errorText = await response.text();
+        }
+        console.error('Error details:', errorText);
+        
+        return NextResponse.json(
+          { error: `Backend error: ${response.statusText}`, details: errorText },
+          { status: response.status }
+        );
+      }
+      
+      const data = await response.json();
+      console.log('Backend response:', data);
+      
+      // Validate the response
+      if (!data || !data.data || !Array.isArray(data.data)) {
+        console.error('Invalid response from backend:', data);
+        return NextResponse.json(
+          { error: 'Invalid response from backend' },
+          { status: 500 }
+        );
+      }
+      
+      return NextResponse.json(data);
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        console.error('Request timed out');
+        return NextResponse.json(
+          { error: 'Request timed out', details: 'The backend did not respond within the timeout period' },
+          { status: 504 }
+        );
+      }
+      throw fetchError; // Re-throw for the outer catch block
     }
-    
-    const data = await response.json();
-    console.log('Backend response:', data);
-    
-    // Validate the response
-    if (!data || !data.data || !Array.isArray(data.data)) {
-      console.error('Invalid response from backend:', data);
-      return NextResponse.json(
-        { error: 'Invalid response from backend' },
-        { status: 500 }
-      );
-    }
-    
-    return NextResponse.json(data);
   } catch (error) {
     console.error('Error in refine_script API route:', error);
     return NextResponse.json(

@@ -21,6 +21,16 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Add rewrites to proxy API requests to the backend
+  async rewrites() {
+    return [
+      // If an API request doesn't match any Next.js routes, proxy it to the backend
+      {
+        source: '/api/:path*',
+        destination: '/api/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
