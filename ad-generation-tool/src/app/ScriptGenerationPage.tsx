@@ -217,6 +217,7 @@ const ScriptGenerationPage: React.FC = () => {
     setError(null);
 
     try {
+      console.log('Starting script generation...');
       const script = await api.generateScript({
         product_name: formData.productName,
         target_audience: formData.targetAudience,
@@ -226,6 +227,7 @@ const ScriptGenerationPage: React.FC = () => {
         speaker_voice: formData.adSpeakerVoice
       });
       
+      console.log('Script generation completed successfully');
       if (script && script.length > 0) {
         // Store the generated script in localStorage
         localStorage.setItem('generatedScript', JSON.stringify(script));
@@ -233,9 +235,22 @@ const ScriptGenerationPage: React.FC = () => {
       } else {
         throw new Error('Received empty or invalid script');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating script:', error);
-      setError('Failed to generate script. Please try again.');
+      let errorMessage = 'Failed to generate script. Try again.';
+      
+      // Provide more specific error messages based on the error
+      if (error.message?.includes('timeout') || error.code === 'ECONNABORTED') {
+        errorMessage = 'The request timed out. The server might be busy. Please try again in a moment.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Our AI is having trouble generating your script. Please try again.';
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Invalid request. Please check your inputs and try again.';
+      } else if (error.message?.includes('Network Error')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+      
+      setError(errorMessage);
       setRetryCount((prev) => prev + 1);
     } finally {
       setIsLoading(false);
