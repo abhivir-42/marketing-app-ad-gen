@@ -1,0 +1,14 @@
+[Unit]
+Description=Ad Generation Backend Service
+After=network.target
+
+[Service]
+User=azureuser
+WorkingDirectory=/home/azureuser/marketing-app-ad-gen/backend
+Environment="PATH=/home/azureuser/.conda/envs/segp-env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/home/azureuser/.conda/envs/segp-env/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target 
