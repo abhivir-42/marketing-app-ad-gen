@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   try {
     // Determine the backend URL based on environment
-    const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV;
-    const backendUrl = isVercel 
-      ? (process.env.NEXT_PUBLIC_VERCEL_API_URL || 'http://172.206.3.68:8000')
-      : (process.env.BACKEND_URL || 'http://localhost:8001');
+    const isVercel = process.env.VERCEL === '1';
+    // const backendUrl = isVercel 
+    //   ? (process.env.NEXT_PUBLIC_VERCEL_API_URL || 'http://172.206.3.68:8000')
+    //   : (process.env.BACKEND_URL || 'http://localhost:8001');
+    const backendUrl = process.env.BACKEND_URL
     
     console.log('Testing connection to backend at:', backendUrl);
     console.log('Environment variables:', {
@@ -15,7 +16,6 @@ export async function GET(request: NextRequest) {
       BACKEND_URL: process.env.BACKEND_URL,
       NEXT_PUBLIC_VERCEL_API_URL: process.env.NEXT_PUBLIC_VERCEL_API_URL
     });
-    console.log("backendUrl: ", backendUrl)
     
     // Use our new test_connection endpoint
     const response = await fetch(`${backendUrl}/test_connection`, {
