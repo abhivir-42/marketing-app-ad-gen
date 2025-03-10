@@ -1,0 +1,607 @@
+nohup: ignoring input
+INFO:     Started server process [236357]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+DEBUG:root:Inputs to script generation: {
+  "product_name": "Test Product",
+  "target_audience": "Test Audience",
+  "key_selling_points": "Great features, easy to use, affordable",
+  "tone": "Professional",
+  "ad_length": 30,
+  "speaker_voice": "Male"
+}
+INFO:root:Current working directory before running script: /home/azureuser/marketing-app-ad-gen/backend
+INFO:root:Expected script generation output path: /home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+INFO:root:All possible output paths: [PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/src/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md')]
+INFO:root:Script generation output: Using output path from environment: /home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+Final output path: /home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+Starting ad script task...
+Task created, returning task...
+[1m[95m# Agent:[00m [1m[92mRadio Script & Voice Director with TTS Optimization[00m
+[95m## Task:[00m [92mCreate a radio ad script with voice direction for the product, optimized for text-to-speech performance.
+Product Name: Test Product Target Audience: Test Audience Key Selling Points: Great features, easy to use, affordable Tone: Professional Ad Length: 30
+TTS Optimization Guidelines: 1. Use natural pauses: Add commas, periods, and ellipses (...) to create realistic breathing pauses. 2. Create emphasis: Use strategic CAPITALIZATION for key words (e.g., "This is CRUCIAL"). 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech. 4. Use short sentences: Break down longer sentences into shorter, digestible ones. 5. Maintain a conversational tone: Keep language natural and human-like, not robotic. 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting.
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mRadio Script & Voice Director with TTS Optimization[00m
+[95m## Final Answer:[00m [92m
+[  
+  ("Introducing the TEST PRODUCT. It's designed for YOU...", "Use a confident tone, moderate pacing") ,  
+  ("With GREAT features, it's easy to use...", "Add excitement, slight emphasis on 'GREAT'") ,  
+  ("And the best part? It's AFFORDABLE...", "Increase enthusiasm, emphasis on 'AFFORDABLE'") ,  
+  ("Make your life SIMPLE. Get started TODAY...", "Inviting tone, prompt urgency with increased pace") ,  
+  ("Visit our website to learn MORE...", "Professional tone, clear articulation on 'MORE'")  
+][00m
+
+
+
+INFO:root:Found output file at /home/azureuser/marketing-app-ad-gen/backend/script_generation/src/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+INFO:     127.0.0.1:53798 - "POST /generate_script HTTP/1.1" 200 OK
+DEBUG:root:Inputs to script generation: {
+  "product_name": "Test Product",
+  "target_audience": "Test Audience",
+  "key_selling_points": "Great features, easy to use, affordable",
+  "tone": "Professional",
+  "ad_length": 30,
+  "speaker_voice": "Male"
+}
+INFO:root:Deleted existing file: /home/azureuser/marketing-app-ad-gen/backend/script_generation/src/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+INFO:root:Current working directory before running script: /home/azureuser/marketing-app-ad-gen/backend
+INFO:root:Expected script generation output path: /home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+INFO:root:All possible output paths: [PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/src/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md')]
+INFO:root:Script generation output: Using output path from environment: /home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+Final output path: /home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+Starting ad script task...
+Task created, returning task...
+[1m[95m# Agent:[00m [1m[92mRadio Script & Voice Director with TTS Optimization[00m
+[95m## Task:[00m [92mCreate a radio ad script with voice direction for the product, optimized for text-to-speech performance.
+Product Name: Test Product Target Audience: Test Audience Key Selling Points: Great features, easy to use, affordable Tone: Professional Ad Length: 30
+TTS Optimization Guidelines: 1. Use natural pauses: Add commas, periods, and ellipses (...) to create realistic breathing pauses. 2. Create emphasis: Use strategic CAPITALIZATION for key words (e.g., "This is CRUCIAL"). 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech. 4. Use short sentences: Break down longer sentences into shorter, digestible ones. 5. Maintain a conversational tone: Keep language natural and human-like, not robotic. 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting.
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mRadio Script & Voice Director with TTS Optimization[00m
+[95m## Final Answer:[00m [92m
+[
+  ("Introducing the TEST PRODUCT, the solution you've been waiting for... It's GREAT, easy to use, and AFFORDABLE.", "Voice should be enthusiastic and engaging, with emphasis on 'GREAT' and 'AFFORDABLE'."),
+  ("Imagine accessing amazing features... with a simple touch.", "Voice should be warm and inviting, creating a sense of ease."),
+  ("Don't struggle with complicated technology... Choose TEST PRODUCT instead!", "Voice should be assertive and persuasive."),
+  ("Join the satisfied users... who found their perfect match!", "Voice should be uplifting and encouraging."),
+  ("Try TEST PRODUCT today... and experience the difference for yourself.", "Voice should be confident and motivating, with a slight pause before 'experience'.")
+][00m
+
+
+
+INFO:root:Found output file at /home/azureuser/marketing-app-ad-gen/backend/script_generation/src/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+INFO:     127.0.0.1:53800 - "POST /generate_script HTTP/1.1" 200 OK
+DEBUG:root:Inputs to script generation: {
+  "product_name": "Test Product",
+  "target_audience": "Test Audience",
+  "key_selling_points": "Great features, easy to use, affordable",
+  "tone": "Professional",
+  "ad_length": 30,
+  "speaker_voice": "Male"
+}
+INFO:root:Deleted existing file: /home/azureuser/marketing-app-ad-gen/backend/script_generation/src/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+INFO:root:Current working directory before running script: /home/azureuser/marketing-app-ad-gen/backend
+INFO:root:Expected script generation output path: /home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+INFO:root:All possible output paths: [PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/src/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md')]
+INFO:root:Script generation output: Using output path from environment: /home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+Final output path: /home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+Starting ad script task...
+Task created, returning task...
+[1m[95m# Agent:[00m [1m[92mRadio Script & Voice Director with TTS Optimization[00m
+[95m## Task:[00m [92mCreate a radio ad script with voice direction for the product, optimized for text-to-speech performance.
+Product Name: Test Product Target Audience: Test Audience Key Selling Points: Great features, easy to use, affordable Tone: Professional Ad Length: 30
+TTS Optimization Guidelines: 1. Use natural pauses: Add commas, periods, and ellipses (...) to create realistic breathing pauses. 2. Create emphasis: Use strategic CAPITALIZATION for key words (e.g., "This is CRUCIAL"). 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech. 4. Use short sentences: Break down longer sentences into shorter, digestible ones. 5. Maintain a conversational tone: Keep language natural and human-like, not robotic. 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting.
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mRadio Script & Voice Director with TTS Optimization[00m
+[95m## Final Answer:[00m [92m
+[
+  ("Introducing the TEST PRODUCT... FOR everyone.", "Professional tone, friendly inflection."),
+  ("It has GREAT features, making it easy to use.", "Emphasize 'GREAT' and 'easy to use'."),
+  ("And the best part?... It's AFFORDABLE.", "Pace slightly faster for emphasis on 'AFFORDABLE'."),
+  ("Don't miss out on this amazing opportunity.", "Soften tone to sound inviting."),
+  ("Try the TEST PRODUCT today!", "Strong, confident delivery.")
+][00m
+
+
+
+INFO:root:Found output file at /home/azureuser/marketing-app-ad-gen/backend/script_generation/src/home/azureuser/marketing-app-ad-gen/backend/script_generation/radio_script.md
+INFO:     127.0.0.1:53802 - "POST /generate_script HTTP/1.1" 200 OK
+INFO:root:Regenerate script request received for 2 selected sentences
+DEBUG:root:Enhanced inputs to regenerate_script crew: {
+  "selected_sentences": [
+    0,
+    1
+  ],
+  "improvement_instruction": "Make it more exciting",
+  "current_script": [
+    [
+      "[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]",
+      "[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]"
+    ],
+    [
+      "[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]",
+      "[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]"
+    ]
+  ],
+  "key_selling_points": "Great features, easy to use, affordable",
+  "tone": "Professional",
+  "ad_length": 30,
+  "explicit_instruction": "\nIMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].\nDO NOT change ANY part of sentences marked with [[PRESERVE]].\nYour task is to apply the improvement instruction ONLY to the selected sentences.\nFor any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.\nThe indices that should be modified are: [0, 1]\n"
+}
+INFO:root:Possible script regeneration output paths: [PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md')]
+INFO:root:Current working directory: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src
+INFO:root:Script regeneration output: Creating script refinement task...
+Expected output path: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Task:[00m [92mRefine the following ad script by updating ONLY the selected sentences, optimizing for text-to-speech performance.
+Original inputs:
+  - Key Selling Points: Great features, easy to use, affordable
+  - Tone: Professional
+  - Ad Length: 30
+
+
+IMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].
+DO NOT change ANY part of sentences marked with [[PRESERVE]].
+Your task is to apply the improvement instruction ONLY to the selected sentences.
+For any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.
+The indices that should be modified are: [0, 1]
+
+Current Script (with selection markers): [['[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]'], ['[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]']] Selected Sentences (indices): [0, 1] Improvement Instruction: Make it more exciting
+TEXT-TO-SPEECH OPTIMIZATION RULES: When modifying selected sentences, ensure they are optimized for natural-sounding TTS: 1. Use natural pauses: Add commas, periods, and ellipses (...) for realistic breathing pauses 2. Create emphasis: Use strategic CAPITALIZATION of key words (e.g., "This is CRUCIAL") 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech 4. Use short sentences: Break down longer sentences into shorter, digestible ones 5. Maintain a conversational tone: Keep language natural and human-like, not robotic 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting
+RESPONSE GUIDELINES: 1. ONLY modify the content inside [[SELECTED FOR MODIFICATION]] markers 2. Keep ALL [[PRESERVE]] content EXACTLY as provided 3. Return the ENTIRE script, with your modifications only to selected sentences 4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output 5. Ensure all modifications follow the TTS optimization rules above
+VALIDATION PROCESS: Your output will be validated by an automated system that will: - Check that ALL preserved lines are 100% identical to the original - Revert any unauthorized changes to non-selected lines - Report validation errors that could affect the quality of your work
+EXAMPLES OF CORRECT BEHAVIOR:
+Input Example: ``` [
+  ["[[PRESERVE: 0]] Line one of script. [[END PRESERVE]]", "[[PRESERVE: 0]] Speak with enthusiasm. [[END PRESERVE]]"],
+  ["[[SELECTED FOR MODIFICATION: 1]] Line two needs improvement. [[END SELECTED]]", "[[SELECTED FOR MODIFICATION: 1]] Speak calmly. [[END SELECTED]]"],
+  ["[[PRESERVE: 2]] Line three is fine. [[END PRESERVE]]", "[[PRESERVE: 2]] Speak with authority. [[END PRESERVE]]"]
+] ```
+Proper Output: ``` [
+  ("Line one of script.", "Speak with enthusiasm."),
+  ("Line two has been improved and made more engaging!", "Speak calmly with a hint of excitement."),
+  ("Line three is fine.", "Speak with authority.")
+] ```
+Notice how: - Only index 1 was modified - Indices 0 and 2 remain EXACTLY as they were in the input - All markers were removed in the final output - The output format is a list of tuples with the script line and art direction
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Final Answer:[00m [92m
+[  
+  ("Introducing TEST PRODUCT.", "Professional tone."),  
+  ("Experience AMAZING features! It's EASY to use... and VERY affordable.", "Calm voice.")  
+][00m
+
+
+
+INFO:root:Script regeneration errors: 
+DEBUG:root:RegenerateScript result: Creating script refinement task...
+Expected output path: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Task:[00m [92mRefine the following ad script by updating ONLY the selected sentences, optimizing for text-to-speech performance.
+Original inputs:
+  - Key Selling Points: Great features, easy to use, affordable
+  - Tone: Professional
+  - Ad Length: 30
+
+
+IMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].
+DO NOT change ANY part of sentences marked with [[PRESERVE]].
+Your task is to apply the improvement instruction ONLY to the selected sentences.
+For any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.
+The indices that should be modified are: [0, 1]
+
+Current Script (with selection markers): [['[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]'], ['[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]']] Selected Sentences (indices): [0, 1] Improvement Instruction: Make it more exciting
+TEXT-TO-SPEECH OPTIMIZATION RULES: When modifying selected sentences, ensure they are optimized for natural-sounding TTS: 1. Use natural pauses: Add commas, periods, and ellipses (...) for realistic breathing pauses 2. Create emphasis: Use strategic CAPITALIZATION of key words (e.g., "This is CRUCIAL") 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech 4. Use short sentences: Break down longer sentences into shorter, digestible ones 5. Maintain a conversational tone: Keep language natural and human-like, not robotic 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting
+RESPONSE GUIDELINES: 1. ONLY modify the content inside [[SELECTED FOR MODIFICATION]] markers 2. Keep ALL [[PRESERVE]] content EXACTLY as provided 3. Return the ENTIRE script, with your modifications only to selected sentences 4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output 5. Ensure all modifications follow the TTS optimization rules above
+VALIDATION PROCESS: Your output will be validated by an automated system that will: - Check that ALL preserved lines are 100% identical to the original - Revert any unauthorized changes to non-selected lines - Report validation errors that could affect the quality of your work
+EXAMPLES OF CORRECT BEHAVIOR:
+Input Example: ``` [
+  ["[[PRESERVE: 0]] Line one of script. [[END PRESERVE]]", "[[PRESERVE: 0]] Speak with enthusiasm. [[END PRESERVE]]"],
+  ["[[SELECTED FOR MODIFICATION: 1]] Line two needs improvement. [[END SELECTED]]", "[[SELECTED FOR MODIFICATION: 1]] Speak calmly. [[END SELECTED]]"],
+  ["[[PRESERVE: 2]] Line three is fine. [[END PRESERVE]]", "[[PRESERVE: 2]] Speak with authority. [[END PRESERVE]]"]
+] ```
+Proper Output: ``` [
+  ("Line one of script.", "Speak with enthusiasm."),
+  ("Line two has been improved and made more engaging!", "Speak calmly with a hint of excitement."),
+  ("Line three is fine.", "Speak with authority.")
+] ```
+Notice how: - Only index 1 was modified - Indices 0 and 2 remain EXACTLY as they were in the input - All markers were removed in the final output - The output format is a list of tuples with the script line and art direction
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Final Answer:[00m [92m
+[  
+  ("Introducing TEST PRODUCT.", "Professional tone."),  
+  ("Experience AMAZING features! It's EASY to use... and VERY affordable.", "Calm voice.")  
+][00m
+
+
+
+INFO:root:Found output file at /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+INFO:root:Script regeneration complete. 2 out of 2 selected sentences were modified.
+INFO:     127.0.0.1:53804 - "POST /regenerate_script HTTP/1.1" 200 OK
+INFO:root:Regenerate script request received for 2 selected sentences
+DEBUG:root:Enhanced inputs to regenerate_script crew: {
+  "selected_sentences": [
+    0,
+    1
+  ],
+  "improvement_instruction": "Make it more exciting",
+  "current_script": [
+    [
+      "[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]",
+      "[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]"
+    ],
+    [
+      "[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]",
+      "[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]"
+    ],
+    [
+      "[[PRESERVE: 2]] Very affordable [[END PRESERVE]]",
+      "[[PRESERVE: 2]] Enthusiastic [[END PRESERVE]]"
+    ]
+  ],
+  "key_selling_points": "Great features, easy to use, affordable",
+  "tone": "Professional",
+  "ad_length": 30,
+  "explicit_instruction": "\nIMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].\nDO NOT change ANY part of sentences marked with [[PRESERVE]].\nYour task is to apply the improvement instruction ONLY to the selected sentences.\nFor any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.\nThe indices that should be modified are: [0, 1]\n"
+}
+INFO:root:Possible script regeneration output paths: [PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md')]
+INFO:root:Current working directory: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src
+INFO:root:Script regeneration output: Creating script refinement task...
+Expected output path: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Task:[00m [92mRefine the following ad script by updating ONLY the selected sentences, optimizing for text-to-speech performance.
+Original inputs:
+  - Key Selling Points: Great features, easy to use, affordable
+  - Tone: Professional
+  - Ad Length: 30
+
+
+IMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].
+DO NOT change ANY part of sentences marked with [[PRESERVE]].
+Your task is to apply the improvement instruction ONLY to the selected sentences.
+For any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.
+The indices that should be modified are: [0, 1]
+
+Current Script (with selection markers): [['[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]'], ['[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]'], ['[[PRESERVE: 2]] Very affordable [[END PRESERVE]]', '[[PRESERVE: 2]] Enthusiastic [[END PRESERVE]]']] Selected Sentences (indices): [0, 1] Improvement Instruction: Make it more exciting
+TEXT-TO-SPEECH OPTIMIZATION RULES: When modifying selected sentences, ensure they are optimized for natural-sounding TTS: 1. Use natural pauses: Add commas, periods, and ellipses (...) for realistic breathing pauses 2. Create emphasis: Use strategic CAPITALIZATION of key words (e.g., "This is CRUCIAL") 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech 4. Use short sentences: Break down longer sentences into shorter, digestible ones 5. Maintain a conversational tone: Keep language natural and human-like, not robotic 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting
+RESPONSE GUIDELINES: 1. ONLY modify the content inside [[SELECTED FOR MODIFICATION]] markers 2. Keep ALL [[PRESERVE]] content EXACTLY as provided 3. Return the ENTIRE script, with your modifications only to selected sentences 4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output 5. Ensure all modifications follow the TTS optimization rules above
+VALIDATION PROCESS: Your output will be validated by an automated system that will: - Check that ALL preserved lines are 100% identical to the original - Revert any unauthorized changes to non-selected lines - Report validation errors that could affect the quality of your work
+EXAMPLES OF CORRECT BEHAVIOR:
+Input Example: ``` [
+  ["[[PRESERVE: 0]] Line one of script. [[END PRESERVE]]", "[[PRESERVE: 0]] Speak with enthusiasm. [[END PRESERVE]]"],
+  ["[[SELECTED FOR MODIFICATION: 1]] Line two needs improvement. [[END SELECTED]]", "[[SELECTED FOR MODIFICATION: 1]] Speak calmly. [[END SELECTED]]"],
+  ["[[PRESERVE: 2]] Line three is fine. [[END PRESERVE]]", "[[PRESERVE: 2]] Speak with authority. [[END PRESERVE]]"]
+] ```
+Proper Output: ``` [
+  ("Line one of script.", "Speak with enthusiasm."),
+  ("Line two has been improved and made more engaging!", "Speak calmly with a hint of excitement."),
+  ("Line three is fine.", "Speak with authority.")
+] ```
+Notice how: - Only index 1 was modified - Indices 0 and 2 remain EXACTLY as they were in the input - All markers were removed in the final output - The output format is a list of tuples with the script line and art direction
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Final Answer:[00m [92m
+[
+  ("Introducing TEST PRODUCT.", "Professional tone."),
+  ("Get ready for GREAT FEATURES, and a design that’s EASY to use!", "Calm voice."),
+  ("Very affordable.", "Enthusiastic.")
+][00m
+
+
+
+INFO:root:Script regeneration errors: 
+DEBUG:root:RegenerateScript result: Creating script refinement task...
+Expected output path: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Task:[00m [92mRefine the following ad script by updating ONLY the selected sentences, optimizing for text-to-speech performance.
+Original inputs:
+  - Key Selling Points: Great features, easy to use, affordable
+  - Tone: Professional
+  - Ad Length: 30
+
+
+IMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].
+DO NOT change ANY part of sentences marked with [[PRESERVE]].
+Your task is to apply the improvement instruction ONLY to the selected sentences.
+For any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.
+The indices that should be modified are: [0, 1]
+
+Current Script (with selection markers): [['[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]'], ['[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]'], ['[[PRESERVE: 2]] Very affordable [[END PRESERVE]]', '[[PRESERVE: 2]] Enthusiastic [[END PRESERVE]]']] Selected Sentences (indices): [0, 1] Improvement Instruction: Make it more exciting
+TEXT-TO-SPEECH OPTIMIZATION RULES: When modifying selected sentences, ensure they are optimized for natural-sounding TTS: 1. Use natural pauses: Add commas, periods, and ellipses (...) for realistic breathing pauses 2. Create emphasis: Use strategic CAPITALIZATION of key words (e.g., "This is CRUCIAL") 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech 4. Use short sentences: Break down longer sentences into shorter, digestible ones 5. Maintain a conversational tone: Keep language natural and human-like, not robotic 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting
+RESPONSE GUIDELINES: 1. ONLY modify the content inside [[SELECTED FOR MODIFICATION]] markers 2. Keep ALL [[PRESERVE]] content EXACTLY as provided 3. Return the ENTIRE script, with your modifications only to selected sentences 4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output 5. Ensure all modifications follow the TTS optimization rules above
+VALIDATION PROCESS: Your output will be validated by an automated system that will: - Check that ALL preserved lines are 100% identical to the original - Revert any unauthorized changes to non-selected lines - Report validation errors that could affect the quality of your work
+EXAMPLES OF CORRECT BEHAVIOR:
+Input Example: ``` [
+  ["[[PRESERVE: 0]] Line one of script. [[END PRESERVE]]", "[[PRESERVE: 0]] Speak with enthusiasm. [[END PRESERVE]]"],
+  ["[[SELECTED FOR MODIFICATION: 1]] Line two needs improvement. [[END SELECTED]]", "[[SELECTED FOR MODIFICATION: 1]] Speak calmly. [[END SELECTED]]"],
+  ["[[PRESERVE: 2]] Line three is fine. [[END PRESERVE]]", "[[PRESERVE: 2]] Speak with authority. [[END PRESERVE]]"]
+] ```
+Proper Output: ``` [
+  ("Line one of script.", "Speak with enthusiasm."),
+  ("Line two has been improved and made more engaging!", "Speak calmly with a hint of excitement."),
+  ("Line three is fine.", "Speak with authority.")
+] ```
+Notice how: - Only index 1 was modified - Indices 0 and 2 remain EXACTLY as they were in the input - All markers were removed in the final output - The output format is a list of tuples with the script line and art direction
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Final Answer:[00m [92m
+[
+  ("Introducing TEST PRODUCT.", "Professional tone."),
+  ("Get ready for GREAT FEATURES, and a design that’s EASY to use!", "Calm voice."),
+  ("Very affordable.", "Enthusiastic.")
+][00m
+
+
+
+INFO:root:Found output file at /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+WARNING:root:Unauthorized change detected for sentence 2. Reverting to original.
+INFO:root:Some unauthorized changes were reverted in the generated script: 1 sentences affected.
+INFO:root:Script regeneration complete. 2 out of 2 selected sentences were modified.
+INFO:     127.0.0.1:53806 - "POST /regenerate_script HTTP/1.1" 200 OK
+INFO:root:Regenerate script request received for 2 selected sentences
+DEBUG:root:Enhanced inputs to regenerate_script crew: {
+  "selected_sentences": [
+    0,
+    1
+  ],
+  "improvement_instruction": "Make it more exciting",
+  "current_script": [
+    [
+      "[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]",
+      "[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]"
+    ],
+    [
+      "[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]",
+      "[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]"
+    ],
+    [
+      "[[PRESERVE: 2]] Very affordable [[END PRESERVE]]",
+      "[[PRESERVE: 2]] Enthusiastic [[END PRESERVE]]"
+    ]
+  ],
+  "key_selling_points": "Great features, easy to use, affordable",
+  "tone": "Professional",
+  "ad_length": 30,
+  "explicit_instruction": "\nIMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].\nDO NOT change ANY part of sentences marked with [[PRESERVE]].\nYour task is to apply the improvement instruction ONLY to the selected sentences.\nFor any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.\nThe indices that should be modified are: [0, 1]\n"
+}
+INFO:root:Possible script regeneration output paths: [PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md')]
+INFO:root:Current working directory: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src
+INFO:root:Script regeneration output: Creating script refinement task...
+Expected output path: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Task:[00m [92mRefine the following ad script by updating ONLY the selected sentences, optimizing for text-to-speech performance.
+Original inputs:
+  - Key Selling Points: Great features, easy to use, affordable
+  - Tone: Professional
+  - Ad Length: 30
+
+
+IMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].
+DO NOT change ANY part of sentences marked with [[PRESERVE]].
+Your task is to apply the improvement instruction ONLY to the selected sentences.
+For any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.
+The indices that should be modified are: [0, 1]
+
+Current Script (with selection markers): [['[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]'], ['[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]'], ['[[PRESERVE: 2]] Very affordable [[END PRESERVE]]', '[[PRESERVE: 2]] Enthusiastic [[END PRESERVE]]']] Selected Sentences (indices): [0, 1] Improvement Instruction: Make it more exciting
+TEXT-TO-SPEECH OPTIMIZATION RULES: When modifying selected sentences, ensure they are optimized for natural-sounding TTS: 1. Use natural pauses: Add commas, periods, and ellipses (...) for realistic breathing pauses 2. Create emphasis: Use strategic CAPITALIZATION of key words (e.g., "This is CRUCIAL") 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech 4. Use short sentences: Break down longer sentences into shorter, digestible ones 5. Maintain a conversational tone: Keep language natural and human-like, not robotic 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting
+RESPONSE GUIDELINES: 1. ONLY modify the content inside [[SELECTED FOR MODIFICATION]] markers 2. Keep ALL [[PRESERVE]] content EXACTLY as provided 3. Return the ENTIRE script, with your modifications only to selected sentences 4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output 5. Ensure all modifications follow the TTS optimization rules above
+VALIDATION PROCESS: Your output will be validated by an automated system that will: - Check that ALL preserved lines are 100% identical to the original - Revert any unauthorized changes to non-selected lines - Report validation errors that could affect the quality of your work
+EXAMPLES OF CORRECT BEHAVIOR:
+Input Example: ``` [
+  ["[[PRESERVE: 0]] Line one of script. [[END PRESERVE]]", "[[PRESERVE: 0]] Speak with enthusiasm. [[END PRESERVE]]"],
+  ["[[SELECTED FOR MODIFICATION: 1]] Line two needs improvement. [[END SELECTED]]", "[[SELECTED FOR MODIFICATION: 1]] Speak calmly. [[END SELECTED]]"],
+  ["[[PRESERVE: 2]] Line three is fine. [[END PRESERVE]]", "[[PRESERVE: 2]] Speak with authority. [[END PRESERVE]]"]
+] ```
+Proper Output: ``` [
+  ("Line one of script.", "Speak with enthusiasm."),
+  ("Line two has been improved and made more engaging!", "Speak calmly with a hint of excitement."),
+  ("Line three is fine.", "Speak with authority.")
+] ```
+Notice how: - Only index 1 was modified - Indices 0 and 2 remain EXACTLY as they were in the input - All markers were removed in the final output - The output format is a list of tuples with the script line and art direction
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Final Answer:[00m [92m
+[
+  ("Introducing TEST PRODUCT.", "Professional tone."),
+  ("Experience GREAT features, and ENJOY an easy-to-use design.", "Calm voice."),
+  ("Very affordable.", "Enthusiastic.")
+][00m
+
+
+
+INFO:root:Script regeneration errors: 
+DEBUG:root:RegenerateScript result: Creating script refinement task...
+Expected output path: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Task:[00m [92mRefine the following ad script by updating ONLY the selected sentences, optimizing for text-to-speech performance.
+Original inputs:
+  - Key Selling Points: Great features, easy to use, affordable
+  - Tone: Professional
+  - Ad Length: 30
+
+
+IMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].
+DO NOT change ANY part of sentences marked with [[PRESERVE]].
+Your task is to apply the improvement instruction ONLY to the selected sentences.
+For any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.
+The indices that should be modified are: [0, 1]
+
+Current Script (with selection markers): [['[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]'], ['[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]'], ['[[PRESERVE: 2]] Very affordable [[END PRESERVE]]', '[[PRESERVE: 2]] Enthusiastic [[END PRESERVE]]']] Selected Sentences (indices): [0, 1] Improvement Instruction: Make it more exciting
+TEXT-TO-SPEECH OPTIMIZATION RULES: When modifying selected sentences, ensure they are optimized for natural-sounding TTS: 1. Use natural pauses: Add commas, periods, and ellipses (...) for realistic breathing pauses 2. Create emphasis: Use strategic CAPITALIZATION of key words (e.g., "This is CRUCIAL") 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech 4. Use short sentences: Break down longer sentences into shorter, digestible ones 5. Maintain a conversational tone: Keep language natural and human-like, not robotic 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting
+RESPONSE GUIDELINES: 1. ONLY modify the content inside [[SELECTED FOR MODIFICATION]] markers 2. Keep ALL [[PRESERVE]] content EXACTLY as provided 3. Return the ENTIRE script, with your modifications only to selected sentences 4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output 5. Ensure all modifications follow the TTS optimization rules above
+VALIDATION PROCESS: Your output will be validated by an automated system that will: - Check that ALL preserved lines are 100% identical to the original - Revert any unauthorized changes to non-selected lines - Report validation errors that could affect the quality of your work
+EXAMPLES OF CORRECT BEHAVIOR:
+Input Example: ``` [
+  ["[[PRESERVE: 0]] Line one of script. [[END PRESERVE]]", "[[PRESERVE: 0]] Speak with enthusiasm. [[END PRESERVE]]"],
+  ["[[SELECTED FOR MODIFICATION: 1]] Line two needs improvement. [[END SELECTED]]", "[[SELECTED FOR MODIFICATION: 1]] Speak calmly. [[END SELECTED]]"],
+  ["[[PRESERVE: 2]] Line three is fine. [[END PRESERVE]]", "[[PRESERVE: 2]] Speak with authority. [[END PRESERVE]]"]
+] ```
+Proper Output: ``` [
+  ("Line one of script.", "Speak with enthusiasm."),
+  ("Line two has been improved and made more engaging!", "Speak calmly with a hint of excitement."),
+  ("Line three is fine.", "Speak with authority.")
+] ```
+Notice how: - Only index 1 was modified - Indices 0 and 2 remain EXACTLY as they were in the input - All markers were removed in the final output - The output format is a list of tuples with the script line and art direction
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Final Answer:[00m [92m
+[
+  ("Introducing TEST PRODUCT.", "Professional tone."),
+  ("Experience GREAT features, and ENJOY an easy-to-use design.", "Calm voice."),
+  ("Very affordable.", "Enthusiastic.")
+][00m
+
+
+
+INFO:root:Found output file at /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+WARNING:root:Unauthorized change detected for sentence 2. Reverting to original.
+INFO:root:Some unauthorized changes were reverted in the generated script: 1 sentences affected.
+INFO:root:Script regeneration complete. 2 out of 2 selected sentences were modified.
+INFO:     127.0.0.1:53808 - "POST /regenerate_script HTTP/1.1" 200 OK
+INFO:root:Regenerate script request received for 2 selected sentences
+DEBUG:root:Enhanced inputs to regenerate_script crew: {
+  "selected_sentences": [
+    0,
+    1
+  ],
+  "improvement_instruction": "Make it more exciting",
+  "current_script": [
+    [
+      "[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]",
+      "[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]"
+    ],
+    [
+      "[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]",
+      "[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]"
+    ],
+    [
+      "[[PRESERVE: 2]] Very affordable [[END PRESERVE]]",
+      "[[PRESERVE: 2]] Enthusiastic [[END PRESERVE]]"
+    ]
+  ],
+  "key_selling_points": "Great features, easy to use, affordable",
+  "tone": "Professional",
+  "ad_length": 30,
+  "explicit_instruction": "\nIMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].\nDO NOT change ANY part of sentences marked with [[PRESERVE]].\nYour task is to apply the improvement instruction ONLY to the selected sentences.\nFor any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.\nThe indices that should be modified are: [0, 1]\n"
+}
+INFO:root:Possible script regeneration output paths: [PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md'), PosixPath('/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md')]
+INFO:root:Current working directory: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src
+INFO:root:Script regeneration output: Creating script refinement task...
+Expected output path: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Task:[00m [92mRefine the following ad script by updating ONLY the selected sentences, optimizing for text-to-speech performance.
+Original inputs:
+  - Key Selling Points: Great features, easy to use, affordable
+  - Tone: Professional
+  - Ad Length: 30
+
+
+IMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].
+DO NOT change ANY part of sentences marked with [[PRESERVE]].
+Your task is to apply the improvement instruction ONLY to the selected sentences.
+For any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.
+The indices that should be modified are: [0, 1]
+
+Current Script (with selection markers): [['[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]'], ['[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]'], ['[[PRESERVE: 2]] Very affordable [[END PRESERVE]]', '[[PRESERVE: 2]] Enthusiastic [[END PRESERVE]]']] Selected Sentences (indices): [0, 1] Improvement Instruction: Make it more exciting
+TEXT-TO-SPEECH OPTIMIZATION RULES: When modifying selected sentences, ensure they are optimized for natural-sounding TTS: 1. Use natural pauses: Add commas, periods, and ellipses (...) for realistic breathing pauses 2. Create emphasis: Use strategic CAPITALIZATION of key words (e.g., "This is CRUCIAL") 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech 4. Use short sentences: Break down longer sentences into shorter, digestible ones 5. Maintain a conversational tone: Keep language natural and human-like, not robotic 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting
+RESPONSE GUIDELINES: 1. ONLY modify the content inside [[SELECTED FOR MODIFICATION]] markers 2. Keep ALL [[PRESERVE]] content EXACTLY as provided 3. Return the ENTIRE script, with your modifications only to selected sentences 4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output 5. Ensure all modifications follow the TTS optimization rules above
+VALIDATION PROCESS: Your output will be validated by an automated system that will: - Check that ALL preserved lines are 100% identical to the original - Revert any unauthorized changes to non-selected lines - Report validation errors that could affect the quality of your work
+EXAMPLES OF CORRECT BEHAVIOR:
+Input Example: ``` [
+  ["[[PRESERVE: 0]] Line one of script. [[END PRESERVE]]", "[[PRESERVE: 0]] Speak with enthusiasm. [[END PRESERVE]]"],
+  ["[[SELECTED FOR MODIFICATION: 1]] Line two needs improvement. [[END SELECTED]]", "[[SELECTED FOR MODIFICATION: 1]] Speak calmly. [[END SELECTED]]"],
+  ["[[PRESERVE: 2]] Line three is fine. [[END PRESERVE]]", "[[PRESERVE: 2]] Speak with authority. [[END PRESERVE]]"]
+] ```
+Proper Output: ``` [
+  ("Line one of script.", "Speak with enthusiasm."),
+  ("Line two has been improved and made more engaging!", "Speak calmly with a hint of excitement."),
+  ("Line three is fine.", "Speak with authority.")
+] ```
+Notice how: - Only index 1 was modified - Indices 0 and 2 remain EXACTLY as they were in the input - All markers were removed in the final output - The output format is a list of tuples with the script line and art direction
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Final Answer:[00m [92m
+[
+  ("Introducing TEST PRODUCT!", "Professional tone."),
+  ("It's packed with GREAT FEATURES, and it's EASY TO USE!", "Calm voice."),
+  ("Very affordable.", "Enthusiastic.")
+][00m
+
+
+
+INFO:root:Script regeneration errors: 
+DEBUG:root:RegenerateScript result: Creating script refinement task...
+Expected output path: /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Task:[00m [92mRefine the following ad script by updating ONLY the selected sentences, optimizing for text-to-speech performance.
+Original inputs:
+  - Key Selling Points: Great features, easy to use, affordable
+  - Tone: Professional
+  - Ad Length: 30
+
+
+IMPORTANT: You MUST ONLY modify sentences marked with [[SELECTED FOR MODIFICATION]].
+DO NOT change ANY part of sentences marked with [[PRESERVE]].
+Your task is to apply the improvement instruction ONLY to the selected sentences.
+For any sentence not selected (marked with PRESERVE), return it EXACTLY as provided.
+The indices that should be modified are: [0, 1]
+
+Current Script (with selection markers): [['[[SELECTED FOR MODIFICATION: 0]] Introducing TEST PRODUCT [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 0]] Professional tone [[END SELECTED]]'], ['[[SELECTED FOR MODIFICATION: 1]] Great features and easy to use [[END SELECTED]]', '[[SELECTED FOR MODIFICATION: 1]] Calm voice [[END SELECTED]]'], ['[[PRESERVE: 2]] Very affordable [[END PRESERVE]]', '[[PRESERVE: 2]] Enthusiastic [[END PRESERVE]]']] Selected Sentences (indices): [0, 1] Improvement Instruction: Make it more exciting
+TEXT-TO-SPEECH OPTIMIZATION RULES: When modifying selected sentences, ensure they are optimized for natural-sounding TTS: 1. Use natural pauses: Add commas, periods, and ellipses (...) for realistic breathing pauses 2. Create emphasis: Use strategic CAPITALIZATION of key words (e.g., "This is CRUCIAL") 3. Ensure proper punctuation: All punctuation must be grammatically correct for clear speech 4. Use short sentences: Break down longer sentences into shorter, digestible ones 5. Maintain a conversational tone: Keep language natural and human-like, not robotic 6. Be concise: Don't add unnecessary words, focus on punctuation and formatting
+RESPONSE GUIDELINES: 1. ONLY modify the content inside [[SELECTED FOR MODIFICATION]] markers 2. Keep ALL [[PRESERVE]] content EXACTLY as provided 3. Return the ENTIRE script, with your modifications only to selected sentences 4. Remove all markers ([[SELECTED FOR MODIFICATION]], [[PRESERVE]], etc.) in your final output 5. Ensure all modifications follow the TTS optimization rules above
+VALIDATION PROCESS: Your output will be validated by an automated system that will: - Check that ALL preserved lines are 100% identical to the original - Revert any unauthorized changes to non-selected lines - Report validation errors that could affect the quality of your work
+EXAMPLES OF CORRECT BEHAVIOR:
+Input Example: ``` [
+  ["[[PRESERVE: 0]] Line one of script. [[END PRESERVE]]", "[[PRESERVE: 0]] Speak with enthusiasm. [[END PRESERVE]]"],
+  ["[[SELECTED FOR MODIFICATION: 1]] Line two needs improvement. [[END SELECTED]]", "[[SELECTED FOR MODIFICATION: 1]] Speak calmly. [[END SELECTED]]"],
+  ["[[PRESERVE: 2]] Line three is fine. [[END PRESERVE]]", "[[PRESERVE: 2]] Speak with authority. [[END PRESERVE]]"]
+] ```
+Proper Output: ``` [
+  ("Line one of script.", "Speak with enthusiasm."),
+  ("Line two has been improved and made more engaging!", "Speak calmly with a hint of excitement."),
+  ("Line three is fine.", "Speak with authority.")
+] ```
+Notice how: - Only index 1 was modified - Indices 0 and 2 remain EXACTLY as they were in the input - All markers were removed in the final output - The output format is a list of tuples with the script line and art direction
+[00m
+
+
+[1m[95m# Agent:[00m [1m[92mScript Refinement Specialist with strict adherence to selection boundaries and TTS optimization[00m
+[95m## Final Answer:[00m [92m
+[
+  ("Introducing TEST PRODUCT!", "Professional tone."),
+  ("It's packed with GREAT FEATURES, and it's EASY TO USE!", "Calm voice."),
+  ("Very affordable.", "Enthusiastic.")
+][00m
+
+
+
+INFO:root:Found output file at /home/azureuser/marketing-app-ad-gen/backend/regenerate_script/src/home/azureuser/marketing-app-ad-gen/backend/regenerate_script/refined_script.md
+WARNING:root:Unauthorized change detected for sentence 2. Reverting to original.
+INFO:root:Some unauthorized changes were reverted in the generated script: 1 sentences affected.
+INFO:root:Script regeneration complete. 2 out of 2 selected sentences were modified.
+INFO:     127.0.0.1:53810 - "POST /regenerate_script HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [236357]
