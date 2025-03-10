@@ -5,7 +5,8 @@ import os
 import subprocess
 import json
 from pathlib import Path
-from typing import List, Tuple, Literal, Dict, Any, Optional, Union
+from typing import List, Tuple, Literal, Dict, Any, Optional
+import requests
 import logging
 
 app = FastAPI()
@@ -61,9 +62,6 @@ class ValidationMetadata(BaseModel):
 
 class AudioRequest(BaseModel):
     script: List[Script]
-    speed: float = 1.0
-    pitch: float = 1.0
-    voiceId: Optional[str] = None
 
 class GenerateAudioResponse(BaseModel):
     audioUrl: str
@@ -511,18 +509,13 @@ async def generate_audio(request: AudioRequest):
     """
     try:
         # Import here to avoid circular imports
-        from backend.utils.tts_integration import call_parler_tts_api
+        from utils.tts_integration.tts_integration import call_parler_tts_api
         
         # Convert our AudioRequest to a format expected by the TTS integration
-        tts_request = {
-            "script": [{"line": script.line, "artDirection": script.artDirection} for script in request.script],
-            "speed": request.speed,
-            "pitch": request.pitch,
-            "voiceId": request.voiceId
-        }
-        
+        script = [(script.line, script.artDirection) for script in request.script]
+
         # Generate audio from the script
-        audio_url = await call_parler_tts_api(tts_request)
+        audio_url = await call_parler_tts_api(script)
         
         # Return the audio URL
         return GenerateAudioResponse(audioUrl=audio_url)
@@ -652,6 +645,6 @@ def test_validation():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
     # Uncomment the following line to run validation tests
     # test_validation() 

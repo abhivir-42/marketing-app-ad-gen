@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const isVercel = process.env.VERCEL === '1';
     const backendUrl = isVercel 
       ? (process.env.NEXT_PUBLIC_VERCEL_API_URL || 'http://172.206.3.68:8000')
-      : (process.env.BACKEND_URL || 'http://localhost:8001');
+      : (process.env.BACKEND_URL || 'http://localhost:8000');
     
     console.log('Using backend URL:', backendUrl);
     
