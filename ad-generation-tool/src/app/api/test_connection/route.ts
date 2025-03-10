@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
       BACKEND_URL: process.env.BACKEND_URL,
       NEXT_PUBLIC_VERCEL_API_URL: process.env.NEXT_PUBLIC_VERCEL_API_URL
     });
+    console.log("backendUrl: ", backendUrl)
     
     // Use our new test_connection endpoint
     const response = await fetch(`${backendUrl}/test_connection`, {
