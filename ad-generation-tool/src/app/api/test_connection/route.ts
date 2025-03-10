@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   try {
     // Determine the backend URL based on environment
-    const isVercel = process.env.VERCEL === '1';
+    const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV;
     const backendUrl = isVercel 
       ? (process.env.NEXT_PUBLIC_VERCEL_API_URL || 'http://172.206.3.68:8000')
       : (process.env.BACKEND_URL || 'http://localhost:8001');
