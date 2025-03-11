@@ -496,19 +496,14 @@ const ResultsPage: React.FC = () => {
     }, 1000);
 
     try {
-      const response = await axios.post<GenerateAudioResponse>('/api/generate_audio', {
-        speed,
-        pitch,
-        voiceId,
-        script,
-      });
+      const response = await axios.post<Object>('/api/generate_audio', {});
       
       let isProcessing = true;
       
       // Poll the status endpoint every 10 seconds
       const pollInterval = setInterval(async () => {
         try {
-          const statusResponse = await axios.get(`/api/audio_status`);
+          const statusResponse = await axios.get<GenerateAudioResponse>(`/api/audio_status`);
           
           // If we have a non-empty result, clear the interval and update the audio URL
           if (statusResponse.data && Object.keys(statusResponse.data).length > 0 && statusResponse.data.audioUrl) {
