@@ -21,7 +21,7 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link href="/" onClick={handleHomeClick} className="text-white font-bold text-xl">
-              Ad Generator
+              AdCraft
             </Link>
           </div>
           <div className="flex space-x-4">
