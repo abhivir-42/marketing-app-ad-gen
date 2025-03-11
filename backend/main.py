@@ -515,10 +515,22 @@ async def generate_audio(request: AudioRequest):
         script = [(script.line, script.artDirection) for script in request.script]
 
         # Generate audio from the script
-        audio_url = await call_parler_tts_api(script)
+        call_parler_tts_api(script)
         
         # Return the audio URL
-        return GenerateAudioResponse(audioUrl=audio_url)
+        return {}
+    except Exception as e:
+        logging.error(f"Audio generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate audio: {str(e)}")
+
+@app.get("/audio_status")
+async def audio_status():
+    try:
+        if os.exist("/home/azureuser/marketing-app-ad-gen/full_script_audio.wav"):
+            from tts_integration import result_path
+            return GenerateAudioResponse(audioUrl=result_path)
+        else:
+            return {}
     except Exception as e:
         logging.error(f"Audio generation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to generate audio: {str(e)}")

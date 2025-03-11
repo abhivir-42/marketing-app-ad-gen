@@ -503,15 +503,51 @@ const ResultsPage: React.FC = () => {
         script,
       });
       
-      setAudioUrl(response.data.audioUrl);
+      let isProcessing = true;
       
-      // Save the audio version
-      saveAudioVersion(
-        response.data.audioUrl, 
-        `Generated with ${availableVoices.find(v => v.id === voiceId)?.name || 'Custom voice'}, speed: ${speed.toFixed(1)}, pitch: ${pitch.toFixed(1)}`
-      );
+      // Poll the status endpoint every 10 seconds
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await axios.get(`/api/audio_status`);
+          
+          // If we have a non-empty result, clear the interval and update the audio URL
+          if (statusResponse.data && Object.keys(statusResponse.data).length > 0 && statusResponse.data.audioUrl) {
+            clearInterval(pollInterval);
+            isProcessing = false;
+            setAudioUrl(statusResponse.data.audioUrl);
+            
+            // Save the audio version
+            saveAudioVersion(
+              statusResponse.data.audioUrl, 
+              `Generated with ${availableVoices.find(v => v.id === voiceId)?.name || 'Custom voice'}, speed: ${speed.toFixed(1)}, pitch: ${pitch.toFixed(1)}`
+            );
+            
+            setGenerationProgress(100);
+          }
+        } catch (error) {
+          console.error('Error checking audio status:', error);
+          clearInterval(pollInterval);
+          isProcessing = false;
+          setAudioError('Failed to retrieve audio status. Please try again.');
+          setAudioRetryCount((prev) => prev + 1);
+        }
+      }, 10000); // Poll every 10 seconds
       
-      setGenerationProgress(100);
+      // Clean up the interval if component unmounts
+      return () => {
+        if (isProcessing) {
+          clearInterval(pollInterval);
+        }
+      };
+      // setAudioUrl(response.data.audioUrl);
+      
+      // // Save the audio version
+      // saveAudioVersion(
+      //   response.data.audioUrl, 
+      //   `Generated with ${availableVoices.find(v => v.id === voiceId)?.name || 'Custom voice'}, speed: ${speed.toFixed(1)}, pitch: ${pitch.toFixed(1)}`
+      // );
+      
+      // setGenerationProgress(100);
     } catch (error) {
       console.error('Error generating audio:', error);
       setAudioError('Failed to generate audio. Please try again.');

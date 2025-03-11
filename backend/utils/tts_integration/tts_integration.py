@@ -92,7 +92,7 @@ async def call_parler_tts_api(script: List[Tuple[str]]):
     try:
         audio_url = await generate_audio_from_script(script)
         
-        return audio_url
+        # return audio_url
     except Exception as e:
         print(f"Error in call_parler_tts_api: {str(e)}")
         raise Exception(f"Failed to generate audio: {str(e)}") 
