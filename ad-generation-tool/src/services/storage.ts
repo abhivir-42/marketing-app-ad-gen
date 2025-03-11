@@ -15,13 +15,14 @@ export const isBrowser = typeof window !== 'undefined';
 // In production (Vercel), always use Supabase
 // In development, use localStorage for faster development
 export const shouldUseSupabase = () => {
-  if (!isBrowser) return false; // During SSR, don't use either
+  // if (!isBrowser) return false; // During SSR, don't use either
   
-  const isVercel = process.env.VERCEL === '1' || process.env.NEXT_PUBLIC_VERCEL === '1';
-  const isProduction = process.env.NODE_ENV === 'production';
+  // const isVercel = process.env.VERCEL === '1' || process.env.NEXT_PUBLIC_VERCEL === '1';
+  // const isProduction = process.env.NODE_ENV === 'production';
   
-  // Always use Supabase in production environments
-  return isVercel || isProduction;
+  // // Always use Supabase in production environments
+  // return isVercel || isProduction;
+  return false;
 };
 
 // Generic get item function
