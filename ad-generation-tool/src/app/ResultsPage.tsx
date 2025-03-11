@@ -290,6 +290,8 @@ const ResultsPage: React.FC = () => {
         console.error('Error parsing saved script:', error);
         router.push('/script');
         return;
+      } finally {
+        setIsLoading(false);
       }
     };
 
